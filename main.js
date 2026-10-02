@@ -1,4 +1,4 @@
-// main.js - Контроллер интерфейса с поддержкой паузы
+// main.js - Контроллер интерфейса с бесшовной паузой
 import { AdaptiveEngine } from './AdaptiveEngine.js';
 
 const engine = new AdaptiveEngine("Командор_Лео");
@@ -45,7 +45,6 @@ function nextRound() {
     if (question) {
         questionBox.innerText = question.text;
         answerInput.value = '';
-        answerInput.style.display = 'inline-block';
         answerInput.focus();
     } else {
         questionBox.innerText = "Миссия завершена! 100% Автоматизм!";
@@ -54,14 +53,17 @@ function nextRound() {
 }
 
 function processAnswer() {
-    if (engine.isPaused) return;
+    // Если игра на паузе, нажатие кнопки "Ответ" или Enter полностью игнорируется
+    if (engine.isPaused) {
+        answerInput.focus();
+        return;
+    }
 
     const value = answerInput.value.trim();
     if (!value) return;
 
     const result = engine.submitAnswer(value);
     
-    // Проверяем, не отвлекся ли ребенок
     if (result.isAnomaly) {
         feedback.innerText = "ПИЛОТ ОТВЛЁКСЯ. СБРОС ТАЙМЕРА.";
         feedback.style.color = "#ffaa00";
@@ -69,7 +71,7 @@ function processAnswer() {
         const logItem = `<div style="color:#ffaa00">[${new Date().toLocaleTimeString()}] ${result.logMessage}</div>`;
         logStream.insertAdjacentHTML('afterbegin', logItem);
         
-        setTimeout(nextRound, 1500); // Чуть дольше пауза, чтобы успел прочитать
+        setTimeout(nextRound, 1500);
         return;
     }
 
@@ -87,20 +89,25 @@ function processAnswer() {
     setTimeout(nextRound, 800);
 }
 
-// Переключение Паузы
+// Бесшовное переключение паузы
 function togglePause() {
     const newState = !engine.isPaused;
     engine.setPause(newState);
 
     if (newState) {
-        pauseBtn.innerText = "ПРОДОЛЖИТЬ ХОД";
+        // Игра заморожена: меняем только кнопку, пример и инпут остаются на месте
+        pauseBtn.innerText = "ИГРА СТОИТ";
         pauseBtn.style.background = "#ffaa00";
-        questionBox.innerText = "⏸️ МОСТИК НА ПАУЗЕ";
-        answerInput.style.display = 'none'; // Скрываем ввод, чтобы не подглядывать
+        answerInput.focus();
     } else {
+        // Игра продолжается
         pauseBtn.innerText = "ПАУЗА";
         pauseBtn.style.background = "#4af626";
-        nextRound();
+        answerInput.focus();
+        // Если за время паузы пример не был сгенерирован (например, при старте), генерируем
+        if (!engine.currentQuestion) {
+            nextRound();
+        }
     }
 }
 
@@ -111,7 +118,7 @@ answerInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') processAnswer();
 });
 
-// Глобальный перехват клавиши Пробел для паузы
+// Перехват клавиши Пробел для паузы (только если фокус не в самом поле ввода)
 window.addEventListener('keydown', (e) => {
     if (e.key === ' ' && document.activeElement !== answerInput) {
         e.preventDefault();
