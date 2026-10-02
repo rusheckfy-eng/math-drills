@@ -1,23 +1,20 @@
-// main.js - Связующий контроллер интерфейса
+// main.js - Контроллер интерфейса с поддержкой паузы
 import { AdaptiveEngine } from './AdaptiveEngine.js';
 
-// Инициализируем ядро
 const engine = new AdaptiveEngine("Командор_Лео");
 
-// Захватываем элементы DOM
 const questionBox = document.getElementById('question-box');
 const answerInput = document.getElementById('answer-input');
 const submitBtn = document.getElementById('submit-btn');
+const pauseBtn = document.getElementById('pause-btn');
 const feedback = document.getElementById('feedback');
 const matrixBody = document.getElementById('matrix-body');
 const logStream = document.getElementById('log-stream');
 const sessionInfo = document.getElementById('session-info');
 
 function renderProfileData() {
-    // Вывод информации о состоянии сессии
     sessionInfo.innerHTML = `Пилот: <strong>${engine.profile.name}</strong> | Операция: <strong style="color:#00ffcc">${engine.profile.mode.toUpperCase()}</strong> | Макс. число: <strong>${engine.profile.maxUnlockedNumber}</strong>`;
 
-    // Отрисовка таблицы матрицы знаний
     matrixBody.innerHTML = '';
     Object.keys(engine.profile.matrix).forEach(key => {
         const node = engine.profile.matrix[key];
@@ -42,10 +39,13 @@ function renderProfileData() {
 }
 
 function nextRound() {
+    if (engine.isPaused) return;
+
     const question = engine.generateNextQuestion();
     if (question) {
         questionBox.innerText = question.text;
         answerInput.value = '';
+        answerInput.style.display = 'inline-block';
         answerInput.focus();
     } else {
         questionBox.innerText = "Миссия завершена! 100% Автоматизм!";
@@ -54,12 +54,25 @@ function nextRound() {
 }
 
 function processAnswer() {
+    if (engine.isPaused) return;
+
     const value = answerInput.value.trim();
     if (!value) return;
 
     const result = engine.submitAnswer(value);
     
-    // Мгновенный фидбек на экране
+    // Проверяем, не отвлекся ли ребенок
+    if (result.isAnomaly) {
+        feedback.innerText = "ПИЛОТ ОТВЛЁКСЯ. СБРОС ТАЙМЕРА.";
+        feedback.style.color = "#ffaa00";
+        
+        const logItem = `<div style="color:#ffaa00">[${new Date().toLocaleTimeString()}] ${result.logMessage}</div>`;
+        logStream.insertAdjacentHTML('afterbegin', logItem);
+        
+        setTimeout(nextRound, 1500); // Чуть дольше пауза, чтобы успел прочитать
+        return;
+    }
+
     if (result.isCorrect) {
         feedback.innerText = "ОТЛИЧНЫЙ ВЫСТРЕЛ!";
         feedback.style.color = "#00ffcc";
@@ -68,19 +81,42 @@ function processAnswer() {
         feedback.style.color = "#ff0055";
     }
 
-    // Вывод лога в отладочный блок
     const logItem = `<div>[${new Date().toLocaleTimeString()}] Триада ${result.key}: ${result.logMessage}</div>`;
     logStream.insertAdjacentHTML('afterbegin', logItem);
 
-    // Пауза 800мс, чтобы ребенок зафиксировал результат, и переход к новому примеру
     setTimeout(nextRound, 800);
 }
 
-// Подписка на события
+// Переключение Паузы
+function togglePause() {
+    const newState = !engine.isPaused;
+    engine.setPause(newState);
+
+    if (newState) {
+        pauseBtn.innerText = "ПРОДОЛЖИТЬ ХОД";
+        pauseBtn.style.background = "#ffaa00";
+        questionBox.innerText = "⏸️ МОСТИК НА ПАУЗЕ";
+        answerInput.style.display = 'none'; // Скрываем ввод, чтобы не подглядывать
+    } else {
+        pauseBtn.innerText = "ПАУЗА";
+        pauseBtn.style.background = "#4af626";
+        nextRound();
+    }
+}
+
 submitBtn.addEventListener('click', processAnswer);
+pauseBtn.addEventListener('click', togglePause);
+
 answerInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') processAnswer();
 });
 
-// Первая сборка и старт игры
+// Глобальный перехват клавиши Пробел для паузы
+window.addEventListener('keydown', (e) => {
+    if (e.key === ' ' && document.activeElement !== answerInput) {
+        e.preventDefault();
+        togglePause();
+    }
+});
+
 nextRound();
