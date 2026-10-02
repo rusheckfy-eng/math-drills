@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>MathOrbit: Модульная архитектура</title>
+    <style>
+        body { font-family: monospace; background: #0f111a; color: #4af626; padding: 20px; margin: 0; }
+        .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { border: 1px solid #4af626; padding: 20px; border-radius: 8px; background: #141824; }
+        h2 { color: #fff; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .math-display { font-size: 36px; text-align: center; margin: 30px 0; color: #00ffcc; font-weight: bold; }
+        .input-zone { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        input[type="number"] { background: #000; border: 1px solid #4af626; color: #4af626; font-size: 24px; width: 80px; text-align: center; outline: none; }
+        button { background: #4af626; color: #000; border: none; padding: 10px 20px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .matrix-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .matrix-table th, .matrix-table td { border: 1px solid #333; padding: 6px; text-align: left; }
+        .matrix-table th { background: #1c2333; color: #fff; }
+        .log-box { height: 120px; background: #000; border: 1px solid #333; padding: 10px; overflow-y: auto; font-size: 11px; color: #aaa; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <h1>MathOrbit // Проверочный стенд модулей</h1>
+    
+    <div class="layout">
+        <!-- ПУЛЬТ УПРАВЛЕНИЯ -->
+        <div class="panel">
+            <h2>Пульт Командора</h2>
+            <div id="session-info">Загрузка ядра...</div>
+            <div class="math-display" id="question-box">-- + -- = ?</div>
+            
+            <div class="input-zone">
+                <input type="number" id="answer-input" autocomplete="off" placeholder="?">
+                <button id="submit-btn">ОТВЕТ</button>
+            </div>
+            
+            <div id="feedback" style="text-align: center; font-weight: bold; min-height: 20px;"></div>
+            <div class="log-box" id="log-stream"></div>
+        </div>
+
+        <!-- МОНИТОР МАТРИЦЫ ЗНАНИЙ -->
+        <div class="panel">
+            <h2>Данные Матрицы (Состав чисел 1-5)</h2>
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th>Триада состава</th>
+                        <th>Доступ</th>
+                        <th>Попытки</th>
+                        <th>Рейтинг EMA</th>
+                        <th>Статус</th>
+                    </tr>
+                </thead>
+                <tbody id="matrix-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Подключаем логику как ES6 модуль -->
+    <script type="module" src="./main.js"></script>
+</body>
+</html>
