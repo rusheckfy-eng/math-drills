@@ -1,31 +1,41 @@
-// AdaptiveEngine.js - Адаптивное ядро обучения с фильтром отвлечений
+// AdaptiveEngine.js - Ядро с поддержкой динамических настроек отладки
 
 export class AdaptiveEngine {
     constructor(commanderName = "Тестовый Командор") {
         this.storageKey = `math_orbit_core_${commanderName}`;
-        this.ALPHA = 0.4;          // Вес нового ответа в формуле EMA
-        this.AUTO_LIMIT = 1200;    // Порог автоматизации (1.2 сек)
-        this.PENALTY_TIME = 1500;  // Штрафное время за ошибку (1.5 сек)
-        this.ANOMALY_LIMIT = 7000; // 7 секунд. Если дольше — значит ребенок отвлекся!
+        this.ALPHA = 0.4; // Чувствительность формулы EMA
+        
+        // Значения по умолчанию, которые перезапишутся настройками с панели
+        this.AUTO_LIMIT = 1200;    
+        this.PENALTY_TIME = 1500;  
+        this.ANOMALY_LIMIT = 7000; 
         
         this.profile = this.loadOrCreateProfile(commanderName);
         this.currentQuestion = null;
         this.startTime = 0;
         this.isPaused = false;
-        this.pauseTimeOffset = 0;  // Для учета времени, проведенного на паузе
+        this.pauseTimeOffset = 0;  
         this.pauseStartTime = 0;
     }
 
-    loadOrCreateProfile(name) {
+    loadOrCreateProfile(name, initialMaxDigits = 3) {
         const saved = localStorage.getItem(this.storageKey);
-        if (saved) return JSON.parse(saved);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            // Если профиль старый, а мы поменяли настройки диапазона на панели, обновим его
+            return parsed;
+        }
 
-        return {
+        return this.createNewProfile(name, initialMaxDigits);
+    }
+
+    createNewProfile(name, initialMaxDigits) {
+        const profile = {
             name: name,
-            maxUnlockedNumber: 2,
-            mode: "addition",
+            maxUnlockedNumber: parseInt(initialMaxDigits), 
+            mode: "addition",     
             matrix: {
-                "2_1_1": { total: 0, ema: 2000, mastered: false, unlocked: true },
+                "2_1_1": { total: 0, ema: 2000, mastered: false, unlocked: false },
                 "3_1_2": { total: 0, ema: 2500, mastered: false, unlocked: false },
                 "4_1_3": { total: 0, ema: 3000, mastered: false, unlocked: false },
                 "4_2_2": { total: 0, ema: 3000, mastered: false, unlocked: false },
@@ -33,26 +43,33 @@ export class AdaptiveEngine {
                 "5_2_3": { total: 0, ema: 3500, mastered: false, unlocked: false }
             }
         };
+
+        // Разблокируем триады в зависимости от стартового выбора (например, до 3)
+        Object.keys(profile.matrix).forEach(key => {
+            const [sum] = key.split('_').map(Number);
+            if (sum <= profile.maxUnlockedNumber) {
+                profile.matrix[key].unlocked = true;
+            }
+        });
+
+        return profile;
     }
 
     saveProfile() {
         localStorage.setItem(this.storageKey, JSON.stringify(this.profile));
     }
 
-    // Поставить на паузу
     setPause(state) {
         this.isPaused = state;
         if (state) {
             this.pauseStartTime = performance.now();
         } else {
-            // Вычитаем время, проведенное на паузе, чтобы таймер решения не пострадал
             this.pauseTimeOffset += (performance.now() - this.pauseStartTime);
         }
     }
 
     generateNextQuestion() {
         if (this.isPaused) return null;
-        
         this.checkProgression();
 
         const pool = Object.keys(this.profile.matrix).filter(key => this.profile.matrix[key].unlocked);
@@ -83,29 +100,26 @@ export class AdaptiveEngine {
         this.currentQuestion = {
             key: chosenKey,
             text: text,
-            answer: correctAnswer,
-            sum: sum
+            answer: correctAnswer
         };
 
         this.startTime = performance.now();
-        this.pauseTimeOffset = 0; // Сбрасываем смещение паузы для нового примера
+        this.pauseTimeOffset = 0;
         return this.currentQuestion;
     }
 
     submitAnswer(userAnswer) {
         if (this.isPaused) return { isAnomaly: false, isCorrect: false };
 
-        // Чистое время решения = Текущее время - Время старта - Время на паузе
         const timeSpent = performance.now() - this.startTime - this.pauseTimeOffset;
         const node = this.profile.matrix[this.currentQuestion.key];
 
-        // МЕТОДИЧЕСКИЙ ФИЛЬТР: Ребенок отвлекся
         if (timeSpent > this.ANOMALY_LIMIT) {
             return { 
                 isAnomaly: true, 
                 isCorrect: false, 
                 timeSpent, 
-                logMessage: `Игнорирование: слишком долгий ответ (${(timeSpent/1000).toFixed(1)}с). Данные не сохранены.` 
+                logMessage: `Ребенок отвлекся (${(timeSpent/1000).toFixed(1)}с). Сброс примера без штрафа.` 
             };
         }
 
@@ -116,7 +130,7 @@ export class AdaptiveEngine {
         if (isCorrect) {
             const oldEma = node.ema;
             node.ema = (timeSpent * this.ALPHA) + (oldEma * (1 - this.ALPHA));
-            logMessage = `Верно за ${(timeSpent/1000).toFixed(2)}с. Новое EMA: ${(node.ema/1000).toFixed(2)}с`;
+            logMessage = `Верно за ${(timeSpent/1000).toFixed(2)}с. ЕМА стало: ${(node.ema/1000).toFixed(2)}с`;
 
             if (node.ema < this.AUTO_LIMIT && node.total >= 3) {
                 node.mastered = true;
@@ -124,7 +138,7 @@ export class AdaptiveEngine {
         } else {
             node.ema += this.PENALTY_TIME;
             node.mastered = false;
-            logMessage = `Ошибка! Штраф +${this.PENALTY_TIME/1000}с. Новое EMA: ${(node.ema/1000).toFixed(2)}с`;
+            logMessage = `Ошибка! Штраф +${this.PENALTY_TIME/1000}с. ЕМА стало: ${(node.ema/1000).toFixed(2)}с`;
         }
 
         this.saveProfile();
