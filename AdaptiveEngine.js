@@ -1,31 +1,26 @@
-// AdaptiveEngine.js - Ядро с поддержкой динамических настроек отладки
+// AdaptiveEngine.js - Ядро со сбросом примера при паузах и динамическими штрафами
 
 export class AdaptiveEngine {
     constructor(commanderName = "Тестовый Командор") {
         this.storageKey = `math_orbit_core_${commanderName}`;
-        this.ALPHA = 0.4; // Чувствительность формулы EMA
+        this.ALPHA = 0.4; 
         
-        // Значения по умолчанию, которые перезапишутся настройками с панели
         this.AUTO_LIMIT = 1200;    
         this.PENALTY_TIME = 1500;  
-        this.ANOMALY_LIMIT = 7000; 
+        this.ANOMALY_LIMIT = 10000; // Порог автопаузы (настраивается из UI)
         
         this.profile = this.loadOrCreateProfile(commanderName);
         this.currentQuestion = null;
         this.startTime = 0;
-        this.isPaused = false;
-        this.pauseTimeOffset = 0;  
-        this.pauseStartTime = 0;
+        
+        // На старте игра жестко заморожена, пока не нажмут "СТАРТ"
+        this.isPaused = true; 
+        this.hasStartedBefore = false; // Флаг для отслеживания первого запуска
     }
 
     loadOrCreateProfile(name, initialMaxDigits = 3) {
         const saved = localStorage.getItem(this.storageKey);
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            // Если профиль старый, а мы поменяли настройки диапазона на панели, обновим его
-            return parsed;
-        }
-
+        if (saved) return JSON.parse(saved);
         return this.createNewProfile(name, initialMaxDigits);
     }
 
@@ -44,12 +39,9 @@ export class AdaptiveEngine {
             }
         };
 
-        // Разблокируем триады в зависимости от стартового выбора (например, до 3)
         Object.keys(profile.matrix).forEach(key => {
             const [sum] = key.split('_').map(Number);
-            if (sum <= profile.maxUnlockedNumber) {
-                profile.matrix[key].unlocked = true;
-            }
+            if (sum <= profile.maxUnlockedNumber) profile.matrix[key].unlocked = true;
         });
 
         return profile;
@@ -59,12 +51,12 @@ export class AdaptiveEngine {
         localStorage.setItem(this.storageKey, JSON.stringify(this.profile));
     }
 
+    // Новая логика паузы: Полное уничтожение активного примера
     setPause(state) {
         this.isPaused = state;
         if (state) {
-            this.pauseStartTime = performance.now();
-        } else {
-            this.pauseTimeOffset += (performance.now() - this.pauseStartTime);
+            // Если встали на паузу — текущий пример сгорает, чтобы его нельзя было "абузить"
+            this.currentQuestion = null;
         }
     }
 
@@ -104,22 +96,22 @@ export class AdaptiveEngine {
         };
 
         this.startTime = performance.now();
-        this.pauseTimeOffset = 0;
         return this.currentQuestion;
     }
 
     submitAnswer(userAnswer) {
-        if (this.isPaused) return { isAnomaly: false, isCorrect: false };
+        if (this.isPaused || !this.currentQuestion) return { isAnomaly: false, isCorrect: false };
 
-        const timeSpent = performance.now() - this.startTime - this.pauseTimeOffset;
+        const timeSpent = performance.now() - this.startTime;
         const node = this.profile.matrix[this.currentQuestion.key];
 
+        // Проверка на Автопаузу (если ответ пришел позже лимита, например вкладка висела открытой)
         if (timeSpent > this.ANOMALY_LIMIT) {
+            this.setPause(true); // Автоматически уходим в паузу
             return { 
                 isAnomaly: true, 
                 isCorrect: false, 
-                timeSpent, 
-                logMessage: `Ребенок отвлекся (${(timeSpent/1000).toFixed(1)}с). Сброс примера без штрафа.` 
+                logMessage: `Автопауза: Ребенок отвлекся на ${(timeSpent/1000).toFixed(1)}с. Пример аннулирован.` 
             };
         }
 
@@ -130,15 +122,16 @@ export class AdaptiveEngine {
         if (isCorrect) {
             const oldEma = node.ema;
             node.ema = (timeSpent * this.ALPHA) + (oldEma * (1 - this.ALPHA));
-            logMessage = `Верно за ${(timeSpent/1000).toFixed(2)}с. ЕМА стало: ${(node.ema/1000).toFixed(2)}с`;
+            logMessage = `Верно за ${(timeSpent/1000).toFixed(2)}с. ЕМА: ${(node.ema/1000).toFixed(2)}с`;
 
             if (node.ema < this.AUTO_LIMIT && node.total >= 3) {
                 node.mastered = true;
             }
         } else {
+            // Динамический штраф из настроек панели
             node.ema += this.PENALTY_TIME;
             node.mastered = false;
-            logMessage = `Ошибка! Штраф +${this.PENALTY_TIME/1000}с. ЕМА стало: ${(node.ema/1000).toFixed(2)}с`;
+            logMessage = `Ошибка! Штраф +${this.PENALTY_TIME/1000}с. ЕМА: ${(node.ema/1000).toFixed(2)}с`;
         }
 
         this.saveProfile();

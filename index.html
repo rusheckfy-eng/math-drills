@@ -9,23 +9,23 @@
         .panel { border: 1px solid #4af626; padding: 20px; border-radius: 8px; background: #141824; box-shadow: 0 0 10px rgba(74,246,38,0.1); }
         h2 { color: #fff; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 5px; }
         .math-display { font-size: 42px; text-align: center; margin: 30px 0; color: #00ffcc; font-weight: bold; min-height: 50px; text-shadow: 0 0 10px rgba(0,255,204,0.3); }
-        .input-zone { display: flex; justify-content: center; margin-bottom: 20px; }
+        .input-zone { display: flex; justify-content: center; margin-bottom: 20px; min-height: 45px; }
         input[type="number"] { background: #000; border: 1px solid #4af626; color: #4af626; font-size: 28px; width: 100px; text-align: center; padding: 5px; outline: none; }
         button { background: #4af626; color: #000; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; }
         button:hover { background: #00ffcc; }
-        .btn-pause { background: #4af626; padding: 5px 15px; }
+        .btn-pause { background: #00ffcc; padding: 8px 20px; font-size: 16px; }
         .matrix-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
         .matrix-table th, .matrix-table td { border: 1px solid #333; padding: 5px; text-align: left; }
         .matrix-table th { background: #1c2333; color: #fff; }
         .log-box { height: 100px; background: #000; border: 1px solid #333; padding: 10px; overflow-y: auto; font-size: 11px; color: #aaa; margin-top: 15px; }
         .header-box { display: flex; justify-content: space-between; align-items: center; }
         
-        /* Стили для формы настроек */
         .config-group { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
         .config-group label { color: #8fa0dd; }
         .config-group input, .config-group select { background: #000; border: 1px solid #333; color: #fff; padding: 4px; width: 80px; text-align: center; }
         .config-group select { width: 110px; }
         .divider { border-top: 1px dashed #333; margin: 15px 0; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -37,15 +37,14 @@
         <div class="panel">
             <div class="header-box">
                 <h2>Кабина Пилота</h2>
-                <button id="pause-btn" class="btn-pause">ПАУЗА</button>
+                <button id="pause-btn" class="btn-pause">СТАРТ</button>
             </div>
             
-            <div id="session-info" style="margin-top: 10px; font-size: 13px;">Загрузка...</div>
-            <div class="math-display" id="question-box">-- + -- = ?</div>
+            <div id="session-info" style="margin-top: 10px; font-size: 13px;">Нажмите СТАРТ для запуска систем...</div>
+            <div class="math-display" id="question-box">🛸 СИСТЕМЫ СТАТИЧНЫ</div>
             
             <div class="input-zone">
-                <!-- Кнопку ответа убрали. Ввод реагирует на нажатие цифры мгновенно -->
-                <input type="number" id="answer-input" autocomplete="off" placeholder="?" min="1" max="9">
+                <input type="number" id="answer-input" class="hidden" autocomplete="off" placeholder="?" min="1" max="9">
             </div>
             
             <div id="feedback" style="text-align: center; font-weight: bold; min-height: 20px; font-size: 16px;"></div>
@@ -72,8 +71,8 @@
             </div>
 
             <div class="config-group">
-                <label>Лимит отвлечения / Аномалия (мс):</label>
-                <input type="number" id="setting-anomaly-limit" value="7000" step="500">
+                <label>Время до Автопаузы (мс):</label>
+                <input type="number" id="setting-anomaly-limit" value="10000" step="1000">
             </div>
 
             <div class="config-group">

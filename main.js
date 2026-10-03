@@ -1,4 +1,4 @@
-// main.js - Контроллер с мгновенным вводом, паузами раундов и панелью отладки
+// main.js - Управление циклом Автопаузы и состояниями Старт/Пауза
 import { AdaptiveEngine } from './AdaptiveEngine.js';
 
 let engine = new AdaptiveEngine("Командор_Лео");
@@ -11,13 +11,15 @@ const matrixBody = document.getElementById('matrix-body');
 const logStream = document.getElementById('log-stream');
 const sessionInfo = document.getElementById('session-info');
 
-// Элементы панели настроек
 const setStartRange = document.getElementById('setting-start-range');
 const setAutoLimit = document.getElementById('setting-auto-limit');
 const setAnomalyLimit = document.getElementById('setting-anomaly-limit');
 const setPenaltyTime = document.getElementById('setting-penalty-time');
 const setMode = document.getElementById('setting-mode');
 const applySettingsBtn = document.getElementById('apply-settings-btn');
+
+// Фоновый сторожевой таймер для отслеживания зависания
+let watchDogInterval = null;
 
 function syncEngineSettings() {
     engine.AUTO_LIMIT = parseInt(setAutoLimit.value);
@@ -27,6 +29,10 @@ function syncEngineSettings() {
 }
 
 function renderProfileData() {
+    if (engine.isPaused && !engine.hasStartedBefore) {
+        sessionInfo.innerHTML = "Системы ждут запуска. Нажмите СТАРТ.";
+        return;
+    }
     sessionInfo.innerHTML = `Пилот: <strong>${engine.profile.name}</strong> | Операция: <strong style="color:#00ffcc">${engine.profile.mode.toUpperCase()}</strong> | Числовой лимит: <strong>до ${engine.profile.maxUnlockedNumber}</strong>`;
 
     matrixBody.innerHTML = '';
@@ -55,10 +61,10 @@ function renderProfileData() {
 function nextRound() {
     if (engine.isPaused) return;
 
-    // Очищаем фидбек перед новым примером
     feedback.innerText = "";
     answerInput.value = '';
     answerInput.disabled = false;
+    answerInput.classList.remove('hidden');
     
     const question = engine.generateNextQuestion();
     if (question) {
@@ -75,19 +81,16 @@ function processAnswer() {
     if (engine.isPaused) return;
 
     const value = answerInput.value.trim();
-    if (!value) return; // Игнорируем пустой ввод
+    if (!value) return; 
 
-    // Блокируем инпут на время паузы-задержки между примерами, чтобы ребенок не спамил кнопками
     answerInput.disabled = true;
-
-    syncEngineSettings(); // Подтягиваем актуальные лимиты времени с панели перед расчетом
+    syncEngineSettings(); 
+    
     const result = engine.submitAnswer(value);
     
+    // Перехват автопаузы из ядра
     if (result.isAnomaly) {
-        feedback.innerText = "💤 ОТВЛЁКСЯ. СБРОС ТАЙМЕРА.";
-        feedback.style.color = "#ffaa00";
-        logStream.insertAdjacentHTML('afterbegin', `<div style="color:#ffaa00">[${new Date().toLocaleTimeString()}] ${result.logMessage}</div>`);
-        setTimeout(nextRound, 1200); // Комфортная пауза задержки перед новым примером
+        triggerAutoPauseAction(result.logMessage);
         return;
     }
 
@@ -102,48 +105,94 @@ function processAnswer() {
     const logItem = `<div>[${new Date().toLocaleTimeString()}] Триада ${result.key}: ${result.logMessage}</div>`;
     logStream.insertAdjacentHTML('afterbegin', logItem);
 
-    setTimeout(nextRound, 1000); // 1 секунда паузы между примерами, чтобы зафиксировать фидбек
+    setTimeout(nextRound, 1000); 
 }
 
+// Принудительный перевод в состояние автопаузы
+function triggerAutoPauseAction(message) {
+    stopWatchDog();
+    engine.setPause(true);
+    
+    pauseBtn.innerText = "ПРОДОЛЖИТЬ";
+    pauseBtn.style.background = "#ffaa00";
+    questionBox.innerText = "⏸️ АВТОПАУЗА: ВЫ ОТВЛЕКЛИСЬ";
+    answerInput.classList.add('hidden');
+    
+    logStream.insertAdjacentHTML('afterbegin', `<div style="color:#ffaa00">[${new Date().toLocaleTimeString()}] ${message}</div>`);
+    renderProfileData();
+}
+
+// Логика кнопки Старт / Пауза / Продолжить
 function togglePause() {
     const newState = !engine.isPaused;
+    
+    if (!engine.hasStartedBefore) {
+        engine.hasStartedBefore = true; // Игра перешла в активную фазу
+    }
+
     engine.setPause(newState);
 
     if (newState) {
-        pauseBtn.innerText = "ИГРА СТОИТ";
+        // Включение ручной паузы
+        pauseBtn.innerText = "ПРОДОЛЖИТЬ";
         pauseBtn.style.background = "#ffaa00";
+        questionBox.innerText = "⏸️ ИГРА НА ПАУЗЕ";
+        answerInput.classList.add('hidden');
+        stopWatchDog();
     } else {
+        // Старт или снятие с паузы
         pauseBtn.innerText = "ПАУЗА";
         pauseBtn.style.background = "#4af626";
         nextRound();
+        startWatchDog();
     }
-    answerInput.focus();
 }
 
-// Применение ручных настроек отладки с полной перезагрузкой профиля
+// Запуск фонового надзора за временем
+function startWatchDog() {
+    stopWatchDog(); // На всякий случай чистим старый
+    watchDogInterval = setInterval(() => {
+        if (!engine.isPaused && engine.startTime > 0) {
+            const currentElapsed = performance.now() - engine.startTime;
+            if (currentElapsed > engine.ANOMALY_LIMIT) {
+                triggerAutoPauseAction(`Автопауза: Превышен лимит ожидания ответа (${engine.ANOMALY_LIMIT / 1000}с).`);
+            }
+        }
+    }, 1000); // Проверка каждую секунду
+}
+
+function stopWatchDog() {
+    if (watchDogInterval) {
+        clearInterval(watchDogInterval);
+        watchDogInterval = null;
+    }
+}
+
+// Применение настроек отладки
 applySettingsBtn.addEventListener('click', () => {
-    localStorage.removeItem(engine.storageKey); // Стираем старый тест-профиль
-    engine = new AdaptiveEngine("Командор_Лео"); // Создаем заново
+    stopWatchDog();
+    localStorage.removeItem(engine.storageKey); 
+    engine = new AdaptiveEngine("Командор_Лео"); 
     
-    // Пересоздаем профиль с выбранным числом доступных цифр изначально
     engine.profile = engine.loadOrCreateProfile("Командор_Лео", setStartRange.value);
     syncEngineSettings();
     engine.saveProfile();
     
-    logStream.insertAdjacentHTML('afterbegin', `<div style="color:#00ffcc; font-weight:bold;">[СИСТЕМА] Профиль перезапущен. Изначально открыты числа до ${setStartRange.value}</div>`);
-    nextRound();
+    pauseBtn.innerText = "СТАРТ";
+    pauseBtn.style.background = "#00ffcc";
+    questionBox.innerText = "🛸 СИСТЕМЫ СТАТИЧНЫ";
+    answerInput.classList.add('hidden');
+    
+    logStream.insertAdjacentHTML('afterbegin', `<div style="color:#00ffcc; font-weight:bold;">[СИСТЕМА] Профиль сброшен. Нажмите СТАРТ для начала.</div>`);
+    renderProfileData();
 });
 
-// Слушаем событие ввода (input) вместо клика на кнопку — для мгновенной реакции
 answerInput.addEventListener('input', () => {
-    // Ждем, пока в инпут попадет хотя бы один символ
-    if (answerInput.value.length > 0) {
-        processAnswer();
-    }
+    if (answerInput.value.length > 0) processAnswer();
 });
 
 pauseBtn.addEventListener('click', togglePause);
 
-// Первая инициализация
+// Первая инициализация (в состоянии ожидания старта)
 syncEngineSettings();
-nextRound();
+renderProfileData();
