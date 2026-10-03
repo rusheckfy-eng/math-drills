@@ -1,5 +1,6 @@
-// main.js - Управление циклом Автопаузы и состояниями Старт/Пауза
+// main.js - Управление интерфейсом, связывание Ядра и Config.js
 import { AdaptiveEngine } from './AdaptiveEngine.js';
+import { Config } from './Config.js';
 
 let engine = new AdaptiveEngine("Командор_Лео");
 
@@ -11,20 +12,28 @@ const matrixBody = document.getElementById('matrix-body');
 const logStream = document.getElementById('log-stream');
 const sessionInfo = document.getElementById('session-info');
 
+// Элементы UI
 const setStartRange = document.getElementById('setting-start-range');
 const setAutoLimit = document.getElementById('setting-auto-limit');
 const setAnomalyLimit = document.getElementById('setting-anomaly-limit');
 const setPenaltyTime = document.getElementById('setting-penalty-time');
+const setAlpha = document.getElementById('setting-alpha');
+const setBaseStart = document.getElementById('setting-base-start'); // Новый элемент
+const setSumMult = document.getElementById('setting-sum-mult');     // Новый элемент
 const setMode = document.getElementById('setting-mode');
 const applySettingsBtn = document.getElementById('apply-settings-btn');
 
-// Фоновый сторожевой таймер для отслеживания зависания
 let watchDogInterval = null;
 
 function syncEngineSettings() {
-    engine.AUTO_LIMIT = parseInt(setAutoLimit.value);
-    engine.ANOMALY_LIMIT = parseInt(setAnomalyLimit.value);
-    engine.PENALTY_TIME = parseInt(setPenaltyTime.value);
+    Config.update({
+        autoLimit: setAutoLimit.value,
+        anomalyLimit: setAnomalyLimit.value,
+        penaltyTime: setPenaltyTime.value,
+        alpha: setAlpha.value,
+        baseStartTime: setBaseStart.value, // Передаем стартовую базу
+        sumMultiplier: setSumMult.value    // Передаем шаг сложности
+    });
     engine.profile.mode = setMode.value;
 }
 
@@ -88,7 +97,6 @@ function processAnswer() {
     
     const result = engine.submitAnswer(value);
     
-    // Перехват автопаузы из ядра
     if (result.isAnomaly) {
         triggerAutoPauseAction(result.logMessage);
         return;
@@ -105,10 +113,9 @@ function processAnswer() {
     const logItem = `<div>[${new Date().toLocaleTimeString()}] Триада ${result.key}: ${result.logMessage}</div>`;
     logStream.insertAdjacentHTML('afterbegin', logItem);
 
-    setTimeout(nextRound, 1000); 
+    setTimeout(nextRound, Config.ROUND_DELAY); 
 }
 
-// Принудительный перевод в состояние автопаузы
 function triggerAutoPauseAction(message) {
     stopWatchDog();
     engine.setPause(true);
@@ -122,25 +129,22 @@ function triggerAutoPauseAction(message) {
     renderProfileData();
 }
 
-// Логика кнопки Старт / Пауза / Продолжить
 function togglePause() {
     const newState = !engine.isPaused;
     
     if (!engine.hasStartedBefore) {
-        engine.hasStartedBefore = true; // Игра перешла в активную фазу
+        engine.hasStartedBefore = true;
     }
 
     engine.setPause(newState);
 
     if (newState) {
-        // Включение ручной паузы
         pauseBtn.innerText = "ПРОДОЛЖИТЬ";
         pauseBtn.style.background = "#ffaa00";
         questionBox.innerText = "⏸️ ИГРА НА ПАУЗЕ";
         answerInput.classList.add('hidden');
         stopWatchDog();
     } else {
-        // Старт или снятие с паузы
         pauseBtn.innerText = "ПАУЗА";
         pauseBtn.style.background = "#4af626";
         nextRound();
@@ -148,17 +152,16 @@ function togglePause() {
     }
 }
 
-// Запуск фонового надзора за временем
 function startWatchDog() {
-    stopWatchDog(); // На всякий случай чистим старый
+    stopWatchDog(); 
     watchDogInterval = setInterval(() => {
         if (!engine.isPaused && engine.startTime > 0) {
             const currentElapsed = performance.now() - engine.startTime;
-            if (currentElapsed > engine.ANOMALY_LIMIT) {
-                triggerAutoPauseAction(`Автопауза: Превышен лимит ожидания ответа (${engine.ANOMALY_LIMIT / 1000}с).`);
+            if (currentElapsed > Config.ANOMALY_LIMIT) {
+                triggerAutoPauseAction(`Автопауза: Превышен лимит ожидания ответа (${Config.ANOMALY_LIMIT / 1000}с).`);
             }
         }
-    }, 1000); // Проверка каждую секунду
+    }, 1000); 
 }
 
 function stopWatchDog() {
@@ -168,14 +171,15 @@ function stopWatchDog() {
     }
 }
 
-// Применение настроек отладки
 applySettingsBtn.addEventListener('click', () => {
     stopWatchDog();
     localStorage.removeItem(engine.storageKey); 
-    engine = new AdaptiveEngine("Командор_Лео"); 
     
-    engine.profile = engine.loadOrCreateProfile("Командор_Лео", setStartRange.value);
+    // ВАЖНО: Сначала синхронизируем конфиг, чтобы новое ядро сгенерировало матрицу по новым правилам весов!
     syncEngineSettings();
+    
+    engine = new AdaptiveEngine("Командор_Лео"); 
+    engine.profile = engine.loadOrCreateProfile("Командор_Лео", setStartRange.value);
     engine.saveProfile();
     
     pauseBtn.innerText = "СТАРТ";
@@ -183,7 +187,7 @@ applySettingsBtn.addEventListener('click', () => {
     questionBox.innerText = "🛸 СИСТЕМЫ СТАТИЧНЫ";
     answerInput.classList.add('hidden');
     
-    logStream.insertAdjacentHTML('afterbegin', `<div style="color:#00ffcc; font-weight:bold;">[СИСТЕМА] Профиль сброшен. Нажмите СТАРТ для начала.</div>`);
+    logStream.insertAdjacentHTML('afterbegin', `<div style="color:#00ffcc; font-weight:bold;">[СИСТЕМА] Профиль сброшен. Матрица собрана с новыми стартовыми весами.</div>`);
     renderProfileData();
 });
 
@@ -193,6 +197,5 @@ answerInput.addEventListener('input', () => {
 
 pauseBtn.addEventListener('click', togglePause);
 
-// Первая инициализация (в состоянии ожидания старта)
 syncEngineSettings();
 renderProfileData();

@@ -44,7 +44,7 @@
             <div class="math-display" id="question-box">🛸 СИСТЕМЫ СТАТИЧНЫ</div>
             
             <div class="input-zone">
-                <input type="number" id="answer-input" class="hidden" autocomplete="off" placeholder="?" min="1" max="9">
+                <input type="number" id="answer-input" class="hidden" autocomplete="off" placeholder="?" min="0" max="9">
             </div>
             
             <div id="feedback" style="text-align: center; font-weight: bold; min-height: 20px; font-size: 16px;"></div>
@@ -78,6 +78,22 @@
             <div class="config-group">
                 <label>Штраф времени за ошибку (мс):</label>
                 <input type="number" id="setting-penalty-time" value="1500" step="100">
+            </div>
+
+            <div class="config-group">
+                <label>Чувствительность EMA (Вес Альфа):</label>
+                <input type="number" id="setting-alpha" value="0.4" step="0.05" min="0.1" max="1.0">
+            </div>
+
+            <!-- НОВЫЕ НАСТРОЙКИ СТАРТОВЫХ ВЕСОВ -->
+            <div class="config-group">
+                <label>Стартовая база времени триад (мс):</label>
+                <input type="number" id="setting-base-start" value="2000" step="500">
+            </div>
+
+            <div class="config-group">
+                <label>Шаг усложнения за единицу суммы (мс):</label>
+                <input type="number" id="setting-sum-mult" value="300" step="100">
             </div>
 
             <div class="config-group">
