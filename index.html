@@ -2,129 +2,19 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>MathDrill: Панель Управления</title>
-    <style>
-        body { font-family: monospace; background: #0f111a; color: #4af626; padding: 20px; margin: 0; }
-        .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .panel { border: 1px solid #4af626; padding: 20px; border-radius: 8px; background: #141824; box-shadow: 0 0 10px rgba(74,246,38,0.1); }
-        h2 { color: #fff; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        .math-display { font-size: 42px; text-align: center; margin: 30px 0; color: #00ffcc; font-weight: bold; min-height: 50px; text-shadow: 0 0 10px rgba(0,255,204,0.3); }
-        .input-zone { display: flex; justify-content: center; margin-bottom: 20px; min-height: 45px; }
-        input[type="number"] { background: #000; border: 1px solid #4af626; color: #4af626; font-size: 28px; width: 100px; text-align: center; padding: 5px; outline: none; }
-        button { background: #4af626; color: #000; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; }
-        button:hover { background: #00ffcc; }
-        .btn-pause { background: #00ffcc; padding: 8px 20px; font-size: 16px; }
-        .matrix-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
-        .matrix-table th, .matrix-table td { border: 1px solid #333; padding: 5px; text-align: left; }
-        .matrix-table th { background: #1c2333; color: #fff; }
-        .log-box { height: 100px; background: #000; border: 1px solid #333; padding: 10px; overflow-y: auto; font-size: 11px; color: #aaa; margin-top: 15px; }
-        .header-box { display: flex; justify-content: space-between; align-items: center; }
-        
-        .config-group { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
-        .config-group label { color: #8fa0dd; }
-        .config-group input, .config-group select { background: #000; border: 1px solid #333; color: #fff; padding: 4px; width: 80px; text-align: center; }
-        .config-group select { width: 110px; }
-        .divider { border-top: 1px dashed #333; margin: 15px 0; }
-        .hidden { display: none !important; }
-    </style>
+    <title>MathDrill: Космический Перехватчик</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="theme-azure">
 
-    <h1>MathDrill // Инженерный отладочный стенд</h1>
-    
-    <div class="layout">
-        <!-- ЛЕВАЯ ПАНЕЛЬ: ИГРОВОЙ ЭКРАН -->
-        <div class="panel">
-            <div class="header-box">
-                <h2>Кабина Пилота</h2>
-                <button id="pause-btn" class="btn-pause">СТАРТ</button>
-            </div>
-            
-            <div id="session-info" style="margin-top: 10px; font-size: 13px;">Нажмите СТАРТ для запуска систем...</div>
-            <div class="math-display" id="question-box">🛸 СИСТЕМЫ СТАТИЧНЫ</div>
-            
-            <div class="input-zone">
-                <input type="number" id="answer-input" class="hidden" autocomplete="off" placeholder="?" min="0" max="9">
-            </div>
-            
-            <div id="feedback" style="text-align: center; font-weight: bold; min-height: 20px; font-size: 16px;"></div>
-            <div class="log-box" id="log-stream"></div>
-        </div>
+    <!-- Экран авторизации -->
+    <div id="profile-screen" class="screen-container"></div>
 
-        <!-- ПРАВАЯ ПАНЕЛЬ: НАСТРОЙКИ И МАТРИЦА -->
-        <div class="panel">
-            <h2>Инженерные Настройки (Отладка)</h2>
-            
-            <div class="config-group">
-                <label>Доступно цифр изначально (Сумма):</label>
-                <select id="setting-start-range">
-                    <option value="2">До 2 (только 1+1)</option>
-                    <option value="3" selected>До 3 (1, 2, 3)</option>
-                    <option value="4">До 4 (1, 2, 3, 4)</option>
-                    <option value="5">До 5 (Полный набор)</option>
-                </select>
-            </div>
+    <!-- Экран игрового кокпита -->
+    <div id="game-screen" class="screen-container" style="display: none;"></div>
 
-            <div class="config-group">
-                <label>Порог автоматизации (мс):</label>
-                <input type="number" id="setting-auto-limit" value="1200" step="100">
-            </div>
-
-            <div class="config-group">
-                <label>Время до Автопаузы (мс):</label>
-                <input type="number" id="setting-anomaly-limit" value="10000" step="1000">
-            </div>
-
-            <div class="config-group">
-                <label>Штраф времени за ошибку (мс):</label>
-                <input type="number" id="setting-penalty-time" value="1500" step="100">
-            </div>
-
-            <div class="config-group">
-                <label>Чувствительность EMA (Вес Альфа):</label>
-                <input type="number" id="setting-alpha" value="0.4" step="0.05" min="0.1" max="1.0">
-            </div>
-
-            <!-- НОВЫЕ НАСТРОЙКИ СТАРТОВЫХ ВЕСОВ -->
-            <div class="config-group">
-                <label>Стартовая база времени триад (мс):</label>
-                <input type="number" id="setting-base-start" value="2000" step="500">
-            </div>
-
-            <div class="config-group">
-                <label>Шаг усложнения за единицу суммы (мс):</label>
-                <input type="number" id="setting-sum-mult" value="300" step="100">
-            </div>
-
-            <div class="config-group">
-                <label>Режим операции:</label>
-                <select id="setting-mode">
-                    <option value="addition">Сложение</option>
-                    <option value="subtraction">Вычитание</option>
-                </select>
-            </div>
-
-            <div style="text-align: right; margin-top: 10px;">
-                <button id="apply-settings-btn" style="background:#00ffcc;">Применить и Сбросить</button>
-            </div>
-
-            <div class="divider"></div>
-
-            <h2>Текущая Матрица Знаний</h2>
-            <table class="matrix-table">
-                <thead>
-                    <tr>
-                        <th>Состав числа</th>
-                        <th>Доступ</th>
-                        <th>Попытки</th>
-                        <th>Рейтинг EMA</th>
-                        <th>Статус</th>
-                    </tr>
-                </thead>
-                <tbody id="matrix-body"></tbody>
-            </table>
-        </div>
-    </div>
+    <!-- Экран админ-панели -->
+    <div id="admin-screen" class="screen-container" style="display: none;"></div>
 
     <script type="module" src="./main.js"></script>
 </body>

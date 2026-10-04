@@ -1,38 +1,36 @@
-// AdaptiveEngine.js - Универсальное ядро, работающее на динамической матрице из Config
 import { Config } from './Config.js';
 
 export class AdaptiveEngine {
     constructor(commanderName = "Тестовый Командор") {
         this.storageKey = `math_orbit_core_${commanderName}`;
-        
         this.profile = this.loadOrCreateProfile(commanderName);
         this.currentQuestion = null;
         this.startTime = 0;
-        
         this.isPaused = true; 
         this.hasStartedBefore = false; 
     }
 
-    loadOrCreateProfile(name, initialMaxDigits = 3) {
+    loadOrCreateProfile(name, initialMaxDigits = 3, avatar = "scout", theme = "theme-azure") {
         const saved = localStorage.getItem(this.storageKey);
         if (saved) return JSON.parse(saved);
-        return this.createNewProfile(name, initialMaxDigits);
+        return this.createNewProfile(name, initialMaxDigits, avatar, theme);
     }
 
-    createNewProfile(name, initialMaxDigits) {
+    createNewProfile(name, initialMaxDigits, avatar, theme) {
         const maxDigits = parseInt(initialMaxDigits);
+        const userConfig = { ...Config.DEFAULT };
         
         const profile = {
             name: name,
+            avatar: avatar,
+            theme: theme,
             maxUnlockedNumber: maxDigits, 
             mode: "addition",     
-            // ГЕНЕРИРУЕМ МАТРИЦУ ДИНАМИЧЕСКИ ДО 5 (наш текущий лимит для MVP)
-            matrix: Config.generateMatrixUntil(5) 
+            config: userConfig,
+            matrix: Config.generateMatrixUntil(5, userConfig) 
         };
 
-        // Открываем триады согласно выбранному стартовому диапазону
         this.syncUnlockStates(profile, maxDigits);
-
         return profile;
     }
 
@@ -40,7 +38,6 @@ export class AdaptiveEngine {
         localStorage.setItem(this.storageKey, JSON.stringify(this.profile));
     }
 
-    // Включает доступность триад, чья сумма меньше или равна текущему лимиту
     syncUnlockStates(profile, maxLimit) {
         Object.keys(profile.matrix).forEach(key => {
             const [sum] = key.split('_').map(Number);
@@ -63,12 +60,10 @@ export class AdaptiveEngine {
         if (pool.length === 0) return null;
 
         pool.sort((a, b) => this.profile.matrix[b].ema - this.profile.matrix[a].ema);
-        
         const targetIdx = Math.floor(Math.random() * Math.min(2, pool.length));
         const chosenKey = pool[targetIdx];
         
         const [sum, addend1, addend2] = chosenKey.split('_').map(Number);
-        
         let text, correctAnswer;
         const coinFlip = Math.random() > 0.5;
 
@@ -84,12 +79,7 @@ export class AdaptiveEngine {
             correctAnswer = res;
         }
 
-        this.currentQuestion = {
-            key: chosenKey,
-            text: text,
-            answer: correctAnswer
-        };
-
+        this.currentQuestion = { key: chosenKey, text: text, answer: correctAnswer };
         this.startTime = performance.now();
         return this.currentQuestion;
     }
@@ -99,8 +89,9 @@ export class AdaptiveEngine {
 
         const timeSpent = performance.now() - this.startTime;
         const node = this.profile.matrix[this.currentQuestion.key];
+        const cfg = this.profile.config;
 
-        if (timeSpent > Config.ANOMALY_LIMIT) {
+        if (timeSpent > cfg.ANOMALY_LIMIT) {
             this.setPause(true);
             return { 
                 isAnomaly: true, 
@@ -115,16 +106,16 @@ export class AdaptiveEngine {
 
         if (isCorrect) {
             const oldEma = node.ema;
-            node.ema = (timeSpent * Config.ALPHA) + (oldEma * (1 - Config.ALPHA));
+            node.ema = (timeSpent * cfg.ALPHA) + (oldEma * (1 - cfg.ALPHA));
             logMessage = `Верно за ${(timeSpent/1000).toFixed(2)}с. ЕМА: ${(node.ema/1000).toFixed(2)}с`;
 
-            if (node.ema < Config.AUTO_LIMIT && node.total >= 3) {
+            if (node.ema < cfg.AUTO_LIMIT && node.total >= 3) {
                 node.mastered = true;
             }
         } else {
-            node.ema += Config.PENALTY_TIME;
+            node.ema += cfg.PENALTY_TIME;
             node.mastered = false;
-            logMessage = `Ошибка! Штраф +${Config.PENALTY_TIME/1000}с. ЕМА: ${(node.ema/1000).toFixed(2)}с`;
+            logMessage = `Ошибка! Штраф +${cfg.PENALTY_TIME/1000}с. ЕМА: ${(node.ema/1000).toFixed(2)}с`;
         }
 
         this.saveProfile();
