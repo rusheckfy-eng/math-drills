@@ -8,19 +8,16 @@ export class ViewGame {
     }
 
     render(profileName, avatar, mode, currentTheme) {
-        // Проверяем выбранную тему, чтобы выставить селектору нужное положение
         var selectedAzure = currentTheme === "theme-azure" ? "selected" : "";
         var selectedPurple = currentTheme === "theme-purple" ? "selected" : "";
         var selectedEmerald = currentTheme === "theme-emerald" ? "selected" : "";
 
-        // Сборка интерфейса на обычных двойных кавычках без апострофов и знаков доллара
         var html = "";
         html += "<div class=\"cockpit-header\">";
         html += "    <div>Пилот: <strong id=\"ui-pilot-name\">" + profileName + "</strong></div>";
         html += "    <button id=\"menu-toggle-btn\" class=\"mini-btn\">МЕНЮ ⚙️</button>";
         html += "</div>";
 
-        html += "<!-- Выпадающее экспресс-меню -->";
         html += "<div id=\"quick-menu\" class=\"quick-menu hidden\">";
         html += "    <div class=\"menu-row\">";
         html += "        <label>Сменить Неон:</label>";
@@ -42,10 +39,9 @@ export class ViewGame {
         html += "    <button id=\"game-pause-btn\" class=\"neon-btn\">СТАРТ</button>";
         html += "</div>";
 
-        html += "<!-- Полностью статичная и безопасная клавиатура -->";
         html += "<div class=\"virtual-keyboard grid-10\">";
         html += "    <button class=\"num-btn\" data-val=\"0\">0</button>";
-        html += "    <button class=\"num-btn"\" data-val=\"1\">1</button>";
+        html += "    <button class=\"num-btn\" data-val=\"1\">1</button>";
         html += "    <button class=\"num-btn\" data-val=\"2\">2</button>";
         html += "    <button class=\"num-btn\" data-val=\"3\">3</button>";
         html += "    <button class=\"num-btn\" data-val=\"4\">4</button>";
@@ -59,7 +55,6 @@ export class ViewGame {
 
         this.container.innerHTML = html;
 
-        // Логика работы выпадающего меню пилота
         var menuBtn = document.getElementById("menu-toggle-btn");
         var quickMenu = document.getElementById("quick-menu");
         menuBtn.addEventListener("click", function() {
@@ -82,7 +77,6 @@ export class ViewGame {
             self.onPause();
         });
         
-        // Навешивание событий на все кнопки 0-10
         var buttons = this.container.querySelectorAll(".num-btn");
         buttons.forEach(function(btn) {
             btn.addEventListener("click", function() {
