@@ -5,120 +5,122 @@ export class ViewGame {
         this.onLogout = onLogoutCallback;
         this.onChangeTheme = onChangeThemeCallback;
         this.container = document.getElementById("game-screen");
+
+        // Инициализируем каркас один раз при создании объекта
+        this.initStructure();
+        // Кешируем ссылки на элементы, чтобы не искать их в DOM каждый раз
+        this.initElements();
+        // Вешаем события один раз
+        this.initEvents();
     }
 
-    render(profileName, avatar, mode, currentTheme) {
-        var selectedAzure = currentTheme === "theme-azure" ? "selected" : "";
-        var selectedPurple = currentTheme === "theme-purple" ? "selected" : "";
-        var selectedEmerald = currentTheme === "theme-emerald" ? "selected" : "";
+    initStructure() {
+        this.container.innerHTML = `
+            <div class="cockpit-header">
+                <div>Пилот: <strong id="ui-pilot-name"></strong></div>
+                <button id="menu-toggle-btn" class="mini-btn">МЕНЮ ⚙️</button>
+            </div>
 
-        var html = "";
-        html += "<div class=\"cockpit-header\">";
-        html += "    <div>Пилот: <strong id=\"ui-pilot-name\">" + profileName + "</strong></div>";
-        html += "    <button id=\"menu-toggle-btn\" class=\"mini-btn\">МЕНЮ ⚙️</button>";
-        html += "</div>";
+            <div id="quick-menu" class="quick-menu hidden">
+                <div class="menu-row">
+                    <label>Сменить Неон:</label>
+                    <select id="quick-theme-select">
+                        <option value="theme-azure">Лазерная Лазурь</option>
+                        <option value="theme-purple">Кибер-Пурпур</option>
+                        <option value="theme-emerald">Изумрудная Матрица</option>
+                    </select>
+                </div>
+                <button id="quick-logout-btn" class="neon-btn logout">ВЫЙТИ ИЗ ПРОФИЛЯ</button>
+            </div>
+            
+            <div class="visor-container" id="visor">
+                <div id="game-question-box">🛸 СИСТЕМЫ ГОТОВЫ</div>
+                <div id="game-feedback"></div>
+            </div>
 
-        html += "<div id=\"quick-menu\" class=\"quick-menu hidden\">";
-        html += "    <div class=\"menu-row\">";
-        html += "        <label>Сменить Неон:</label>";
-        html += "        <select id=\"quick-theme-select\">";
-        html += "            <option value=\"theme-azure\" " + selectedAzure + ">Лазерная Лазурь</option>";
-        html += "            <option value=\"theme-purple\" " + selectedPurple + ">Кибер-Пурпур</option>";
-        html += "            <option value=\"theme-emerald\" " + selectedEmerald + ">Изумрудная Матрица</option>";
-        html += "        </select>";
-        html += "    </div>";
-        html += "    <button id=\"quick-logout-btn\" class=\"neon-btn logout\">ВЫЙТИ ИЗ ПРОФИЛЯ</button>";
-        html += "</div>";
-        
-        html += "<div class=\"visor-container\" id=\"visor\">";
-        html += "    <div id=\"game-question-box\">🛸 СИСТЕМЫ ГОТОВЫ</div>";
-        html += "    <div id=\"game-feedback\"></div>";
-        html += "</div>";
+            <div class="controls-row">
+                <button id="game-pause-btn" class="neon-btn">СТАРТ</button>
+            </div>
 
-        html += "<div class=\"controls-row\">";
-        html += "    <button id=\"game-pause-btn\" class=\"neon-btn\">СТАРТ</button>";
-        html += "</div>";
+            <div class="virtual-keyboard grid-10">
+                ${Array.from({length: 11}, (_, i) => `<button class="num-btn" data-val="i">{i}</button>`).join('')}
+            </div>
+        `;
+    }
 
-        html += "<div class=\"virtual-keyboard grid-10\">";
-        html += "    <button class=\"num-btn\" data-val=\"0\">0</button>";
-        html += "    <button class=\"num-btn\" data-val=\"1\">1</button>";
-        html += "    <button class=\"num-btn\" data-val=\"2\">2</button>";
-        html += "    <button class=\"num-btn\" data-val=\"3\">3</button>";
-        html += "    <button class=\"num-btn\" data-val=\"4\">4</button>";
-        html += "    <button class=\"num-btn\" data-val=\"5\">5</button>";
-        html += "    <button class=\"num-btn\" data-val=\"6\">6</button>";
-        html += "    <button class=\"num-btn\" data-val=\"7\">7</button>";
-        html += "    <button class=\"num-btn\" data-val=\"8\">8</button>";
-        html += "    <button class=\"num-btn\" data-val=\"9\">9</button>";
-        html += "    <button class=\"num-btn\" data-val=\"10\">10</button>";
-        html += "</div>";
+    initElements() {
+        this.pilotNameEl = document.getElementById("ui-pilot-name");
+        this.menuBtn = document.getElementById("menu-toggle-btn");
+        this.quickMenu = document.getElementById("quick-menu");
+        this.themeSelect = document.getElementById("quick-theme-select");
+        this.logoutBtn = document.getElementById("quick-logout-btn");
+        this.pauseBtn = document.getElementById("game-pause-btn");
+        this.visor = document.getElementById("visor");
+        this.questionBox = document.getElementById("game-question-box");
+        this.feedbackBox = document.getElementById("game-feedback");
+    }
 
-        this.container.innerHTML = html;
-
-        var menuBtn = document.getElementById("menu-toggle-btn");
-        var quickMenu = document.getElementById("quick-menu");
-        menuBtn.addEventListener("click", function() {
-            quickMenu.classList.toggle("hidden");
+    initEvents() {
+        this.menuBtn.addEventListener("click", () => {
+            this.quickMenu.classList.toggle("hidden");
         });
 
-        var themeSelect = document.getElementById("quick-theme-select");
-        var self = this;
-        themeSelect.addEventListener("change", function(e) {
-            self.onChangeTheme(e.target.value);
+        this.themeSelect.addEventListener("change", (e) => {
+            this.onChangeTheme(e.target.value);
         });
 
-        var logoutBtn = document.getElementById("quick-logout-btn");
-        logoutBtn.addEventListener("click", function() {
-            self.onLogout();
+        this.logoutBtn.addEventListener("click", () => {
+            this.onLogout();
         });
 
-        var pauseBtn = document.getElementById("game-pause-btn");
-        pauseBtn.addEventListener("click", function() {
-            self.onPause();
+        this.pauseBtn.addEventListener("click", () => {
+            this.onPause();
         });
         
-        var buttons = this.container.querySelectorAll(".num-btn");
-        buttons.forEach(function(btn) {
-            btn.addEventListener("click", function() {
-                self.onAnswer(btn.getAttribute("data-val"));
+        const buttons = this.container.querySelectorAll(".num-btn");
+        buttons.forEach((btn) => {
+            btn.addEventListener("click", () => {
+                this.onAnswer(btn.getAttribute("data-val"));
             });
         });
     }
 
+    // Теперь render просто обновляет данные, не ломая DOM и не сбрасывая обработчики
+    render(profileName, avatar, mode, currentTheme) {
+        this.pilotNameEl.innerText = profileName;
+        this.themeSelect.value = currentTheme; 
+    }
+
     updateQuestion(text) {
-        document.getElementById("game-question-box").innerText = text;
+        this.questionBox.innerText = text;
     }
 
     updateFeedback(text, isCorrect) {
-        var fb = document.getElementById("game-feedback");
-        fb.innerText = text;
-        fb.style.color = isCorrect ? "var(--neon-color)" : "#ff0055";
+        this.feedbackBox.innerText = text;
+        this.feedbackBox.style.color = isCorrect ? "var(--neon-color)" : "#ff0055";
     }
 
     setPauseState(isPaused, text) {
-        var btn = document.getElementById("game-pause-btn");
-        var visor = document.getElementById("game-question-box");
-        var errorMsg = text || "⏸️ НА ПАУЗЕ";
+        const errorMsg = text || "⏸️ НА ПАУЗЕ";
         
         if (isPaused) {
-            btn.innerText = "ПРОДОЛЖИТЬ";
-            btn.style.background = "#ffaa00";
-            visor.innerText = errorMsg;
+            this.pauseBtn.innerText = "ПРОДОЛЖИТЬ";
+            this.pauseBtn.style.background = "#ffaa00";
+            this.questionBox.innerText = errorMsg;
         } else {
-            btn.innerText = "ПАУЗА";
-            btn.style.background = "transparent";
+            this.pauseBtn.innerText = "ПАУЗА";
+            this.pauseBtn.style.background = "transparent";
         }
     }
 
     triggerShake() {
-        var visor = document.getElementById("visor");
-        visor.classList.add("shake");
-        setTimeout(function() {
-            visor.classList.remove("shake");
+        this.visor.classList.add("shake");
+        setTimeout(() => {
+            this.visor.classList.remove("shake");
         }, 400);
     }
 
     show(visible) {
-        this.container.style.display = visible ? "flex" : "none";
+        this.container.style.style.display = visible ? "flex" : "none";
     }
 }
