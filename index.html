@@ -2,20 +2,28 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MathDrill: Космический Перехватчик</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body class="theme-azure">
 
-    <!-- Экран авторизации -->
-    <div id="profile-screen" class="screen-container"></div>
+    <!-- ЭКРАН 1: АВТОРИЗАЦИЯ И ИНИЦИАЛИЗАЦИЯ ПИЛОТА -->
+    <div id="profile-screen" class="screen-container">
+        <!-- Сюда динамически рендерится форма из ViewProfile.js -->
+    </div>
 
-    <!-- Экран игрового кокпита -->
-    <div id="game-screen" class="screen-container" style="display: none;"></div>
+    <!-- ЭКРАН 2: КОСМИЧЕСКИЙ КОКПИТ / ИГРОВОЙ ПРОЦЕСС -->
+    <div id="game-screen" class="screen-container" style="display: none;">
+        <!-- Сюда динамически рендерится интерфейс из ViewGame.js -->
+    </div>
 
-    <!-- Экран админ-панели -->
-    <div id="admin-screen" class="screen-container" style="display: none;"></div>
+    <!-- ЭКРАН 3: ИНЖЕНЕРНЫЙ ОТЛАДОЧНЫЙ ПУЛЬТ (АДМИНКА) -->
+    <div id="admin-screen" class="screen-container" style="display: none;">
+        <!-- Сюда динамически рендерится панель администратора -->
+    </div>
 
+    <!-- Подключение главного архитектурного контроллера -->
     <script type="module" src="./main.js"></script>
 </body>
 </html>
