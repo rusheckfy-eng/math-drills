@@ -14,39 +14,40 @@ export class ViewGame {
         this.initEvents();
     }
 
-    initStructure() {
-        this.container.innerHTML = `
-            <div class="cockpit-header">
-                <div>Пилот: <strong id="ui-pilot-name"></strong></div>
-                <button id="menu-toggle-btn" class="mini-btn">МЕНЮ ⚙️</button>
-            </div>
+initStructure() {
+    this.container.innerHTML = `
+        <div class="cockpit-header">
+            <div>Пилот: <strong id="ui-pilot-name"></strong></div>
+            <button id="menu-toggle-btn" class="mini-btn">МЕНЮ ⚙️</button>
+        </div>
 
-            <div id="quick-menu" class="quick-menu hidden">
-                <div class="menu-row">
-                    <label>Сменить Неон:</label>
-                    <select id="quick-theme-select">
-                        <option value="theme-azure">Лазерная Лазурь</option>
-                        <option value="theme-purple">Кибер-Пурпур</option>
-                        <option value="theme-emerald">Изумрудная Матрица</option>
-                    </select>
-                </div>
-                <button id="quick-logout-btn" class="neon-btn logout">ВЫЙТИ ИЗ ПРОФИЛЯ</button>
+        <div id="quick-menu" class="quick-menu hidden">
+            <div class="menu-row">
+                <label>Сменить Неон:</label>
+                <select id="quick-theme-select">
+                    <option value="theme-azure">Лазерная Лазурь</option>
+                    <option value="theme-purple">Кибер-Пурпур</option>
+                    <option value="theme-emerald">Изумрудная Матрица</option>
+                </select>
             </div>
-            
-            <div class="visor-container" id="visor">
-                <div id="game-question-box">🛸 СИСТЕМЫ ГОТОВЫ</div>
-                <div id="game-feedback"></div>
-            </div>
+            <button id="quick-logout-btn" class="neon-btn logout">ВЫЙТИ ИЗ ПРОФИЛЯ</button>
+        </div>
+        
+        <div class="visor-container" id="visor">
+            <div id="game-question-box">🛸 СИСТЕМЫ ГОТОВЫ</div>
+            <div id="game-feedback"></div>
+        </div>
 
-            <div class="controls-row">
-                <button id="game-pause-btn" class="neon-btn">СТАРТ</button>
-            </div>
+        <div class="controls-row">
+            <button id="game-pause-btn" class="neon-btn">СТАРТ</button>
+        </div>
 
-            <div class="virtual-keyboard grid-10">
-                ${Array.from({length: 11}, (_, i) => `<button class="num-btn" data-val="i">{i}</button>`).join('')}
-            </div>
-        `;
-    }
+        <div class="virtual-keyboard grid-10">
+            ${Array.from({length: 11}, (_, i) => `<button class="num-btn" data-val="\({i}">\){i}</button>`).join("")}
+        </div>
+    `;
+}
+
 
     initElements() {
         // Ищем строго внутри контейнера, чтобы избежать проблем с глобальным поиском
