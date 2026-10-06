@@ -91,7 +91,6 @@ function applyVisualTheme(themeClass) {
 function handleUserAnswer(value) {
     if (!engine || engine.isPaused) return;
 
-    const cfg = engine.profile.config;
     const result = engine.submitAnswer(value);
 
     if (result.isAnomaly) {
@@ -99,18 +98,22 @@ function handleUserAnswer(value) {
         return;
     }
 
+    // Изменение логики согласно ТЗ: текст вердикта выводится ПРЯМО вместо примера
     if (result.isCorrect) {
-        viewGame.updateFeedback("🚀 ВЕЛИКОЛЕПНО!", true);
+        viewGame.updateQuestion("🚀 ВЕЛИКОЛЕПНО!");
+        viewGame.updateFeedback("", true); 
     } else {
-        viewGame.updateFeedback("💥 СБОЙ СИСТЕМЫ", false);
-        viewGame.triggerShake();
+        viewGame.updateQuestion("💥 ПРОМАХ!");
+        viewGame.updateFeedback("", false);
+        viewGame.triggerShake(); // Трясем визор при сбое
     }
 
-    setTimeout(nextRound, cfg.ROUND_DELAY);
+    // Раунды визуально отделяются: вердикт горит ровно 1 секунду, затем летит новый пример
+    setTimeout(nextRound, 1000);
 }
 
 function nextRound() {
-    if (engine.isPaused) return;
+    if (!engine || engine.isPaused) return;
     
     viewGame.updateFeedback("", true);
     const question = engine.generateNextQuestion();
@@ -138,7 +141,7 @@ function togglePause() {
 
 function triggerAutoPauseAction() {
     stopWatchDog();
-    engine.setPause(true);
+    if (engine) engine.setPause(true);
     viewGame.setPauseState(true, "⏸️ АВТОПАУЗА: ВЫ ОТВЛЕКЛИСЬ");
 }
 
@@ -174,7 +177,6 @@ window.addEventListener('keydown', (e) => {
         if (!isNaN(numInt) && numInt >= 0 && numInt <= 10) {
             handleUserAnswer(e.key);
         } else if (e.key === '0' || e.key === '1') {
-            // Защита для граничных кейсов строк
             handleUserAnswer(e.key);
         }
     }
