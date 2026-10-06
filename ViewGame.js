@@ -8,7 +8,7 @@ export class ViewGame {
 
         // Инициализируем каркас один раз при создании объекта
         this.initStructure();
-        // Кешируем ссылки на элементы, чтобы не искать их в DOM каждый раз
+        // Кешируем ссылки на элементы локально внутри контейнера
         this.initElements();
         // Вешаем события один раз
         this.initEvents();
@@ -49,15 +49,16 @@ export class ViewGame {
     }
 
     initElements() {
-        this.pilotNameEl = document.getElementById("ui-pilot-name");
-        this.menuBtn = document.getElementById("menu-toggle-btn");
-        this.quickMenu = document.getElementById("quick-menu");
-        this.themeSelect = document.getElementById("quick-theme-select");
-        this.logoutBtn = document.getElementById("quick-logout-btn");
-        this.pauseBtn = document.getElementById("game-pause-btn");
-        this.visor = document.getElementById("visor");
-        this.questionBox = document.getElementById("game-question-box");
-        this.feedbackBox = document.getElementById("game-feedback");
+        // Ищем строго внутри контейнера, чтобы избежать проблем с глобальным поиском
+        this.pilotNameEl = this.container.querySelector("#ui-pilot-name");
+        this.menuBtn = this.container.querySelector("#menu-toggle-btn");
+        this.quickMenu = this.container.querySelector("#quick-menu");
+        this.themeSelect = this.container.querySelector("#quick-theme-select");
+        this.logoutBtn = this.container.querySelector("#quick-logout-btn");
+        this.pauseBtn = this.container.querySelector("#game-pause-btn");
+        this.visor = this.container.querySelector("#visor");
+        this.questionBox = this.container.querySelector("#game-question-box");
+        this.feedbackBox = this.container.querySelector("#game-feedback");
     }
 
     initEvents() {
@@ -85,22 +86,24 @@ export class ViewGame {
         });
     }
 
-    // Теперь render просто обновляет данные, не ломая DOM и не сбрасывая обработчики
     render(profileName, avatar, mode, currentTheme) {
-        this.pilotNameEl.innerText = profileName;
-        this.themeSelect.value = currentTheme; 
+        if (this.pilotNameEl) this.pilotNameEl.innerText = profileName;
+        if (this.themeSelect) this.themeSelect.value = currentTheme; 
     }
 
     updateQuestion(text) {
-        this.questionBox.innerText = text;
+        if (this.questionBox) this.questionBox.innerText = text;
     }
 
     updateFeedback(text, isCorrect) {
-        this.feedbackBox.innerText = text;
-        this.feedbackBox.style.color = isCorrect ? "var(--neon-color)" : "#ff0055";
+        if (this.feedbackBox) {
+            this.feedbackBox.innerText = text;
+            this.feedbackBox.style.color = isCorrect ? "var(--neon-color)" : "#ff0055";
+        }
     }
 
     setPauseState(isPaused, text) {
+        if (!this.pauseBtn || !this.questionBox) return;
         const errorMsg = text || "⏸️ НА ПАУЗЕ";
         
         if (isPaused) {
@@ -114,6 +117,7 @@ export class ViewGame {
     }
 
     triggerShake() {
+        if (!this.visor) return;
         this.visor.classList.add("shake");
         setTimeout(() => {
             this.visor.classList.remove("shake");
@@ -121,6 +125,8 @@ export class ViewGame {
     }
 
     show(visible) {
-        this.container.style.style.display = visible ? "flex" : "none";
+        if (this.container) {
+            this.container.style.display = visible ? "flex" : "none";
+        }
     }
 }
