@@ -5,16 +5,24 @@ import { ViewGame } from './ViewGame.js';
 let engine = null;
 let watchDogInterval = null;
 
-// Экраны-контейнеры из DOM
 const adminScreen = document.getElementById('admin-screen');
 
-// Инициализация View слоев
+// Контроллер инициализирует View-слои, передавая обработчики обратного вызова
 const viewProfile = new ViewProfile(handleLoginSuccess);
-const viewGame = new ViewGame(handleUserAnswer, togglePause);
+const viewGame = new ViewGame(handleUserAnswer, togglePause, handleLogout, handleThemeChange);
 
 viewProfile.render();
 
-function handleLoginSuccess({ name, avatar, theme }) {
+// ПРОВЕРКА АВТОВХОДА (Запомнить меня)
+const savedSession = localStorage.getItem('math_drill_active_session');
+if (savedSession) {
+    const sessionData = JSON.parse(savedSession);
+    handleLoginSuccess({ ...sessionData, remember: true });
+} else {
+    viewProfile.show(true);
+}
+
+function handleLoginSuccess({ name, avatar, theme, remember }) {
     viewProfile.show(false);
 
     if (name.toLowerCase() === 'admin') {
@@ -23,20 +31,61 @@ function handleLoginSuccess({ name, avatar, theme }) {
         return;
     }
 
-    // Загрузка или создание профиля игрока
+    // Инициализация адаптивного ядра
     engine = new AdaptiveEngine(name);
     if (!localStorage.getItem(engine.storageKey)) {
         engine.profile = engine.createNewProfile(name, 3, avatar, theme);
         engine.saveProfile();
     }
 
-    // Применяем тему оформления
-    document.body.className = '';
-    document.body.classList.add(engine.profile.theme);
+    // Если был выбран чекбокс, сохраняем токен автологина
+    if (remember) {
+        localStorage.setItem('math_drill_active_session', JSON.stringify({
+            name: engine.profile.name,
+            avatar: engine.profile.avatar,
+            theme: engine.profile.theme
+        }));
+    }
+
+    applyVisualTheme(engine.profile.theme);
 
     adminScreen.style.display = 'none';
     viewGame.show(true);
-    viewGame.render(engine.profile.name, engine.profile.avatar, engine.profile.mode);
+    viewGame.render(engine.profile.name, engine.profile.avatar, engine.profile.mode, engine.profile.theme);
+}
+
+function handleThemeChange(newTheme) {
+    if (!engine) return;
+    engine.profile.theme = newTheme;
+    engine.saveProfile();
+    
+    // Обновляем сессию автологина, если она активна
+    const session = localStorage.getItem('math_drill_active_session');
+    if (session) {
+        const parsed = JSON.parse(session);
+        parsed.theme = newTheme;
+        localStorage.setItem('math_drill_active_session', JSON.stringify(parsed));
+    }
+    
+    applyVisualTheme(newTheme);
+}
+
+function handleLogout() {
+    stopWatchDog();
+    if (engine) engine.setPause(true);
+    
+    localStorage.removeItem('math_drill_active_session'); // Сброс автологина
+    engine = null;
+    
+    viewGame.show(false);
+    adminScreen.style.display = 'none';
+    viewProfile.show(true);
+    viewProfile.render();
+}
+
+function applyVisualTheme(themeClass) {
+    document.body.className = '';
+    document.body.classList.add(themeClass);
 }
 
 function handleUserAnswer(value) {
@@ -87,7 +136,7 @@ function togglePause() {
     }
 }
 
-function triggerAutoPauseAction(message) {
+function triggerAutoPauseAction() {
     stopWatchDog();
     engine.setPause(true);
     viewGame.setPauseState(true, "⏸️ АВТОПАУЗА: ВЫ ОТВЛЕКЛИСЬ");
@@ -112,19 +161,26 @@ function stopWatchDog() {
     }
 }
 
-// Перехват физической клавиатуры (Кнопки 0-5 и Пробел)
+// Физическая клавиатура расширена до поддержки клавиш 0-10
 window.addEventListener('keydown', (e) => {
-    if (!engine || viewProfile.container.style.display !== 'none') return;
+    if (!engine || document.getElementById('profile-screen').style.display !== 'none') return;
 
     if (e.code === 'Space') {
         e.preventDefault();
         togglePause();
-    } else if (['0', '1', '2', '3', '4', '5'].includes(e.key)) {
-        handleUserAnswer(e.key);
+    } else {
+        // Проверка ввода чисел от 0 до 10
+        let numInt = parseInt(e.key);
+        if (!isNaN(numInt) && numInt >= 0 && numInt <= 10) {
+            handleUserAnswer(e.key);
+        } else if (e.key === '0' || e.key === '1') {
+            // Защита для граничных кейсов строк
+            handleUserAnswer(e.key);
+        }
     }
 });
 
-// Заглушка под админку (бывший отладочный стенд)
 function initAdminPanel() {
-    adminScreen.innerHTML = `<h1>Панель Инженера (Admin Mode)</h1><p>Доступ ко всем матрицам открыт.</p>`;
+    adminScreen.innerHTML = `<h1>Панель Инженера (Admin Mode)</h1><p>Доступ открыт.</p><button id="admin-logout" class="neon-btn">Выйти</button>`;
+    document.getElementById('admin-logout').addEventListener('click', handleLogout);
 }

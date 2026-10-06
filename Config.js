@@ -1,5 +1,4 @@
 export const Config = {
-    // Дефолтные настройки для создания новых профилей
     DEFAULT: {
         AUTO_LIMIT: 1200,      
         ANOMALY_LIMIT: 10000,  
@@ -10,7 +9,8 @@ export const Config = {
         SUM_MULTIPLIER: 300,   
     },
 
-    generateMatrixUntil(maxNum, config = Config.DEFAULT) {
+    // Масштабирование до 10 включительно согласно ТЗ
+    generateMatrixUntil(maxNum = 10, config = Config.DEFAULT) {
         const matrix = {};
         for (let sum = 1; sum <= maxNum; sum++) {
             for (let a1 = 0; a1 <= Math.floor(sum / 2); a1++) {

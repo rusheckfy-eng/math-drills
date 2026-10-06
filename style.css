@@ -1,19 +1,14 @@
-/* ==========================================================================
-   1. ГЛОБАЛЬНЫЕ НАСТРОЙКИ И НЕОНОВЫЕ ПАЛИТРЫ (ТЕМЫ)
-   ========================================================================== */
 :root {
     --bg-space: #020208;
     --bg-card: rgba(6, 6, 20, 0.85);
     --border-radius: 12px;
     --font-cyber: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     
-    /* Базовая дефолтная палитра (Лазерная Лазурь) */
     --neon-color: #00ffcc;
     --neon-glow: rgba(0, 255, 204, 0.4);
     --cockpit-window: rgba(0, 26, 26, 0.6);
 }
 
-/* Переключение тем через классы на body */
 body.theme-azure {
     --neon-color: #00ffcc;
     --neon-glow: rgba(0, 255, 204, 0.4);
@@ -32,12 +27,11 @@ body.theme-emerald {
     --cockpit-window: rgba(10, 26, 0, 0.6);
 }
 
-/* Сброс базовых стилей */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    -webkit-tap-highlight-color: transparent; /* Отключение стандартного синего выделения на тачах */
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -48,233 +42,160 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow-x: hidden;
-    /* Эффект глубокого космоса */
-    background-image: 
-        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
-        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px);
-    background-size: 550px 550px, 350px 350px;
-    background-position: 0 0, 40px 60px;
+    overflow: hidden; /* Фиксируем экран смартфона от скролла */
 }
 
-/* Контейнеры экранов-сцен */
 .screen-container {
     width: 100%;
-    max-width: 500px;
-    min-height: 100vh;
-    padding: 20px;
+    max-width: 430px; /* Идеально под ширину iPhone/Android */
+    height: 100vh;
+    padding: 15px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between; /* Распределяем элементы по краям */
     align-items: center;
 }
 
-/* ==========================================================================
-   2. ЭКРАН АВТОРИЗАЦИИ (VIEW PROFILE)
-   ========================================================================== */
+/* Авторизация */
 .auth-card {
     background: var(--bg-card);
     border: 2px solid var(--neon-color);
     border-radius: var(--border-radius);
-    padding: 30px;
+    padding: 20px;
     width: 100%;
     box-shadow: 0 0 20px var(--neon-glow);
-    backdrop-filter: blur(10px);
 }
 
-.auth-card h2 {
-    font-size: 1.4rem;
-    text-align: center;
-    margin-bottom: 25px;
-    letter-spacing: 2px;
-    color: var(--neon-color);
-    text-shadow: 0 0 8px var(--neon-glow);
-}
-
-.form-group {
-    margin-bottom: 20px;
+.form-group-checkbox {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    color: #ccc;
 }
 
-.form-group label {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-    color: #aaa;
-}
-
-.form-group input,
-.form-group select {
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 6px;
-    padding: 12px;
-    color: #fff;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    border-color: var(--neon-color);
-    box-shadow: 0 0 8px var(--neon-glow);
-}
-
-/* Универсальная неоновая кнопка */
-.neon-btn {
-    display: block;
-    width: 100%;
-    background: transparent;
-    border: 2px solid var(--neon-color);
-    border-radius: 6px;
-    color: #fff;
-    padding: 14px;
-    font-size: 1rem;
-    font-weight: bold;
-    letter-spacing: 2px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-shadow: 0 0 5px #fff;
-    box-shadow: inset 0 0 8px var(--neon-glow), 0 0 8px var(--neon-glow);
-}
-
-.neon-btn:hover {
-    background: var(--neon-color);
-    color: #000;
-    text-shadow: none;
-    box-shadow: 0 0 20px var(--neon-color);
-}
-
-.neon-btn:active {
-    transform: scale(0.98);
-}
-
-/* ==========================================================================
-   3. ИГРОВОЙ ЭКРАН / КАБИНА (VIEW GAME)
-   ========================================================================== */
-#game-screen {
-    justify-content: space-between; /* Раскидываем элементы кабины по высоте экрана */
-    padding: 30px 20px;
-}
-
+/* Кокпит */
 .cockpit-header {
     width: 100%;
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-size: 0.9rem;
-    letter-spacing: 1px;
     text-transform: uppercase;
-    color: #ccc;
+    padding-bottom: 5px;
     border-bottom: 1px dashed rgba(255,255,255,0.1);
-    padding-bottom: 10px;
 }
 
-/* Центральный визор (круглый/овальный иллюминатор) */
+.mini-btn {
+    background: transparent;
+    border: 1px solid var(--neon-color);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Выпадающее верхнее меню */
+.quick-menu {
+    width: 100%;
+    background: rgba(10, 10, 30, 0.95);
+    border: 1px solid var(--neon-color);
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 5px;
+    z-index: 10;
+}
+
+.menu-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.menu-row select {
+    background: #000;
+    color: #fff;
+    padding: 5px;
+    border: 1px solid var(--neon-color);
+}
+
+.neon-btn.logout {
+    background: rgba(255, 0, 85, 0.2);
+    border-color: #ff0055;
+}
+
+/* Оптимизированный уменьшенный визор */
 .visor-container {
     width: 100%;
-    height: 180px;
+    height: 110px; /* Уменьшено для компактности на смартфонах */
     background: var(--cockpit-window);
-    border: 3px solid var(--neon-color);
-    border-radius: 50% / 20px; /* Сплюснутый космический эллипс */
+    border: 2px solid var(--neon-color);
+    border-radius: 50% / 15px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin: 30px 0;
-    box-shadow: inset 0 0 25px var(--neon-glow), 0 0 15px var(--neon-glow);
+    box-shadow: inset 0 0 15px var(--neon-glow), 0 0 10px var(--neon-glow);
     position: relative;
-    backdrop-filter: blur(4px);
 }
 
 #game-question-box {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: bold;
-    letter-spacing: 3px;
-    text-shadow: 0 0 12px var(--neon-glow);
-    text-align: center;
 }
 
-#game-feedback {
-    position: absolute;
-    bottom: 20px;
-    font-size: 0.9rem;
-    font-weight: bold;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    height: 15px;
-}
-
-.controls-row {
-    width: 100%;
-    margin-bottom: 30px;
-}
-
-/* ==========================================================================
-   4. СЕНСОРНАЯ НЕОНОВАЯ КЛАВИАТУРА 0-5
-   ========================================================================== */
-.virtual-keyboard {
+/* Оптимизированная клавиатура 0-10 */
+.virtual-keyboard.grid-10 {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Сетка 3х2 для идеального хвата пальцами */
-    gap: 15px;
+    grid-template-columns: repeat(4, 1fr); /* 4 колонки — кнопки стали квадратными и компактными */
+    gap: 8px;
+    padding-bottom: 10px;
+}
+
+/* Последняя кнопка (10) растягивается на 2 колонки для ровной сетки */
+.virtual-keyboard.grid-10 .num-btn:last-child {
+    grid-column: span 2;
 }
 
 .num-btn {
     background: rgba(0, 0, 0, 0.6);
     border: 1px solid var(--neon-color);
-    border-radius: var(--border-radius);
+    border-radius: 8px;
     color: #fff;
-    font-size: 2rem;
-    font-weight: bold;
-    padding: 20px 0;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    box-shadow: 0 0 5px var(--neon-glow);
-    /* Защита от случайного выделения текста при быстром тапе */
-    user-select: none; 
+    font-size: 1.6rem;
+    padding: 12px 0; /* Оптимальная высота под тапы пальцами */
+    user-select: none;
 }
 
-/* Эффект прожатия виртуальной клавиши */
 .num-btn:active {
     background: var(--neon-color);
     color: #000;
-    box-shadow: 0 0 25px var(--neon-color);
-    transform: scale(0.92);
 }
 
-/* ==========================================================================
-   5. АНИМАЦИИ И СПЕЦЭФФЕКТЫ
-   ========================================================================== */
+.neon-btn {
+    width: 100%;
+    background: transparent;
+    border: 2px solid var(--neon-color);
+    border-radius: 6px;
+    color: #fff;
+    padding: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
 
-/* Эффект критической тряски (Shake) при промахах */
 .shake {
-    animation: space-shake 0.35s cubic-bezier(.36,.07,.19,.97) both;
-    border-color: #ff0055 !important;
-    box-shadow: inset 0 0 25px rgba(255,0,85,0.5), 0 0 20px rgba(255,0,85,0.5) !important;
+    animation: space-shake 0.3s ease;
 }
 
 @keyframes space-shake {
-    10%, 90% { transform: translate3d(-2px, 0, 0); }
-    20%, 80% { transform: translate3d(4px, 0, 0); }
-    30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-    40%, 60% { transform: translate3d(6px, 0, 0); }
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
 }
 
-/* Скрытые элементы */
 .hidden {
     display: none !important;
-}
-
-/* Текстовые стили для логов или инженерии */
-#admin-screen {
-    background: #000;
-    color: #39ff14;
-    font-family: 'Courier New', Courier, monospace;
-    border: 1px solid #39ff14;
-    border-radius: 4px;
-    padding: 20px;
-    width: 100%;
 }

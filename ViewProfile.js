@@ -28,6 +28,10 @@ export class ViewProfile {
                         <option value="theme-emerald">Изумрудная Матрица</option>
                     </select>
                 </div>
+                <div class="form-group-checkbox">
+                    <input type="checkbox" id="pilot-remember">
+                    <label for="pilot-remember">Запомнить меня на этом устройстве</label>
+                </div>
                 <button id="btn-enter-orbit" class="neon-btn">ВХОД НА ОРБИТУ</button>
             </div>
         `;
@@ -41,8 +45,9 @@ export class ViewProfile {
         
         const avatar = document.getElementById('pilot-avatar').value;
         const theme = document.getElementById('pilot-theme').value;
+        const remember = document.getElementById('pilot-remember').checked;
         
-        this.onLogin({ name, avatar, theme });
+        this.onLogin({ name, avatar, theme, remember });
     }
 
     show(visible) {

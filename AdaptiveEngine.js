@@ -5,6 +5,7 @@ export class AdaptiveEngine {
         this.storageKey = `math_orbit_core_${commanderName}`;
         this.profile = this.loadOrCreateProfile(commanderName);
         this.currentQuestion = null;
+        this.lastChosenKey = null; // Для исключения повторов подряд
         this.startTime = 0;
         this.isPaused = true; 
         this.hasStartedBefore = false; 
@@ -27,7 +28,7 @@ export class AdaptiveEngine {
             maxUnlockedNumber: maxDigits, 
             mode: "addition",     
             config: userConfig,
-            matrix: Config.generateMatrixUntil(5, userConfig) 
+            matrix: Config.generateMatrixUntil(10, userConfig) // Расширено до 10
         };
 
         this.syncUnlockStates(profile, maxDigits);
@@ -56,13 +57,36 @@ export class AdaptiveEngine {
         if (this.isPaused) return null;
         this.checkProgression();
 
-        const pool = Object.keys(this.profile.matrix).filter(key => this.profile.matrix[key].unlocked);
+        let pool = Object.keys(this.profile.matrix).filter(key => this.profile.matrix[key].unlocked);
         if (pool.length === 0) return null;
 
-        pool.sort((a, b) => this.profile.matrix[b].ema - this.profile.matrix[a].ema);
-        const targetIdx = Math.floor(Math.random() * Math.min(2, pool.length));
-        const chosenKey = pool[targetIdx];
+        // 1. Исключаем повторение одной и той же комбинации подряд (если в пуле больше 1 элемента)
+        if (pool.length > 1 && this.lastChosenKey) {
+            pool = pool.filter(key => key !== this.lastChosenKey);
+        }
+
+        // 2. Балансировка 50/50: Новое число vs Пройденные (если открыто несколько уровней чисел)
+        const currentMaxNum = this.profile.maxUnlockedNumber;
+        const newNumberKeys = pool.filter(key => key.startsWith(`${currentMaxNum}_`));
+        const oldNumberKeys = pool.filter(key => !key.startsWith(`${currentMaxNum}_`));
+
+        let finalPool = pool;
+        // Если есть и новые, и старые числа — включаем распределение 50% / 50%
+        if (newNumberKeys.length > 0 && oldNumberKeys.length > 0) {
+            if (Math.random() < 0.5) {
+                finalPool = newNumberKeys;
+            } else {
+                finalPool = oldNumberKeys;
+            }
+        }
+
+        // Сортировка по EMA (худшие результаты вверх)
+        finalPool.sort((a, b) => this.profile.matrix[b].ema - this.profile.matrix[a].ema);
+        const targetIdx = Math.floor(Math.random() * Math.min(2, finalPool.length));
+        const chosenKey = finalPool[targetIdx];
         
+        this.lastChosenKey = chosenKey; // Запоминаем для следующего раунда
+
         const [sum, addend1, addend2] = chosenKey.split('_').map(Number);
         let text, correctAnswer;
         const coinFlip = Math.random() > 0.5;
@@ -129,7 +153,7 @@ export class AdaptiveEngine {
 
         if (allMastered) {
             if (this.profile.mode === "addition") {
-                if (this.profile.maxUnlockedNumber < 5) {
+                if (this.profile.maxUnlockedNumber < 10) { // Лимит сдвинут до 10
                     this.profile.maxUnlockedNumber++;
                     this.syncUnlockStates(this.profile, this.profile.maxUnlockedNumber);
                 } else {
