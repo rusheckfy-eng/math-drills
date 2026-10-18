@@ -3,7 +3,7 @@
 export const Scenario = {
     "scene_001": {
         title: "Пробуждение в каюте и вызов И.С.К.Р.Ы.",
-        theme: "theme-azure", // Лазурный неон для стартовой локации Земли
+        theme: "theme-azure", // Лазурный неон Академии Земли
         timeline: [
             {
                 type: "dialogue",
@@ -17,13 +17,13 @@ export const Scenario = {
                 speaker: "И.С.К.Р.А.",
                 text: "Семь ноль-ноль по уставу Земли! Приём! Эй, Капитан, ты где? Твой бортовой ИИ уже устал стучаться по радиоканалу!",
                 leftChar: null,
-                rightChar: { id: "iskra", pose: "normal" } // Голограмма Искры появляется справа у пульта
+                rightChar: { id: "iskra", pose: "normal" }
             },
             {
                 type: "dialogue",
-                speaker: "Командор", // View автоматически заменит на имя игрока
+                speaker: "Командор",
                 text: "Не шуми, Искорка! Я уже на ногах и застёгиваю последнюю липучку на ботинке.",
-                leftChar: null, // Пилот отвечает из-за кадра, завязывая обувь
+                leftChar: null,
                 rightChar: { id: "iskra", pose: "normal" }
             },
             {
@@ -37,7 +37,7 @@ export const Scenario = {
                 type: "dialogue",
                 speaker: "Командор",
                 text: "Спокойно, мы взлетим точно по секундомеру. Сегодня наш первый настоящий вылет, нужно выглядеть круто!",
-                leftChar: { id: "hero", pose: "suit_hello" }, // Пилот появляется слева на переднем плане
+                leftChar: { id: "hero", pose: "suit_hello" }, // Появляется наша красная девочка
                 rightChar: { id: "iskra", pose: "normal" }
             },
             {
@@ -50,11 +50,34 @@ export const Scenario = {
             {
                 type: "dialogue",
                 speaker: "Командор",
-                text: "В сером пусть летают роботы-уборщики. Погнали в ангар!",
+                text: "В сером пусть летают роботы-уборщики. Включаю предвзлётную диагностику систем курьера!",
+                leftChar: { id: "hero", pose: "suit_hello" },
+                rightChar: { id: "iskra", pose: "normal" }
+            },
+            {
+                type: "dialogue",
+                speaker: "И.С.К.Р.А.",
+                text: "Внимание! Квантовый терминал заблокирован защитным протоколом. Командор, реши тренировочные уравнения для синхронизации визора шлема!",
+                leftChar: { id: "hero", pose: "suit_hello" },
+                rightChar: { id: "iskra", pose: "normal" }
+            },
+            
+            // ТРЕНИРОВОЧНЫЙ МАТЕМАТИЧЕСКИЙ БЛОК (Сложение и вычитание в пределах 5)
+            {
+                type: "math_block",
+                requiredCount: 3, // Сколько примеров нужно решить для продолжения
+                maxDigits: 5      // Автоматическое ограничение математической матрицы (числа до 5)
+            },
+            
+            // РЕПЛИКИ ПОСЛЕ УСПЕШНОГО РЕШЕНИЯ ТРЕНИРОВКИ
+            {
+                type: "dialogue",
+                speaker: "И.С.К.Р.А.",
+                text: "Диагностика завершена! Квантовый реактор стабилен на 100%. Мы готовы покинуть каюту и направиться в ангар!",
                 leftChar: { id: "hero", pose: "suit_hello" },
                 rightChar: { id: "iskra", pose: "normal" }
             }
         ],
-        nextScene: "scene_002" // Переход в ангар к Жоре
+        nextScene: "scene_002" // Ссылка на следующую сцену (пока пустая)
     }
 };
