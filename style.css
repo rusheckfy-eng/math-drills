@@ -102,7 +102,7 @@ body {
     align-items: center;
 }
 
-/* ЭКРАН РЕГИСТРАЦИИ (БЕЗ СКРОЛЛА) */
+/* ГОРИЗОНТАЛЬНЫЙ ЭКРАН РЕГИСТРАЦИИ (БЕЗ СКРОЛЛА) — ИСПРАВЛЕННЫЙ */
 #profile-screen {
     width: 100%;
     height: 100%;
@@ -110,58 +110,43 @@ body {
     justify-content: center;
     align-items: center;
     overflow: hidden;
+    padding: 5px;
 }
 
-/* Базовая карточка */
-.auth-card {
-    background: var(--bg-card);
-    border: 2px solid var(--neon-color);
-    border-radius: var(--border-radius);
-    box-shadow: 0 0 20px var(--neon-glow);
-    display: flex;
-    flex-direction: column;
-}
-
-/* Специфичные настройки для широкого горизонтального меню пилота */
 .landscape-profile-card {
-    max-width: 620px !important; 
-    width: 100%;
-    padding: 15px 20px !important;
-    gap: 10px !important;
+    max-width: 580px !important; 
+    width: 96%; /* Позволяет карточке мягко сжиматься на смартфонах */
+    padding: 10px 15px !important;
+    gap: 8px !important;
 }
 
 .landscape-profile-card h2 {
     text-align: center;
-    font-size: 1.3rem;
-    letter-spacing: 2px;
+    font-size: 1.1rem; /* Чуть уменьшили, чтобы заголовок не вылезал */
+    letter-spacing: 1px;
     color: var(--neon-color);
     text-shadow: 0 0 8px var(--neon-glow);
-    margin-bottom: 5px;
+    margin-bottom: 2px;
 }
 
 .profile-grid-container {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Две равные колонки */
-    gap: 20px;
+    grid-template-columns: 1.1fr 0.9fr; /* Слегка изменили пропорции колонок */
+    gap: 12px; /* Уменьшили зазор между колонками */
     width: 100%;
 }
 
 .profile-column {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
+    gap: 6px;
 }
 
 .form-group label, .selection-block label {
-    font-size: 0.8rem;
+    font-size: 0.75rem; /* Сделали подписи компактнее */
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     color: #aaa;
 }
 
@@ -169,29 +154,22 @@ body {
     background: rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 6px;
-    padding: 8px;
+    padding: 6px 10px; /* Уменьшили высоту инпута */
     color: #fff;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.form-group input:focus {
-    border-color: var(--neon-color);
-    box-shadow: 0 0 8px var(--neon-glow);
+    font-size: 0.9rem;
 }
 
 /* СЕЛЕКТОРЫ СКАФАНДРОВ И ПОЛА */
 .gender-toggle-row {
     display: flex;
-    gap: 10px;
+    gap: 6px;
     width: 100%;
 }
 
 .suit-color-row-vertical {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     width: 100%;
 }
 
@@ -199,7 +177,7 @@ body {
     background: rgba(0, 0, 0, 0.6);
     border: 1px solid rgba(0, 255, 204, 0.25);
     color: #ccc;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
     transition: all 0.2s ease;
@@ -207,45 +185,15 @@ body {
 
 .gender-toggle-row .selector-btn {
     flex: 1;
-    padding: 8px;
-    font-size: 0.85rem;
+    padding: 6px;
+    font-size: 0.8rem;
 }
 
 .suit-color-row-vertical .color-btn {
     width: 100%;
-    padding: 8px 12px;
-    font-size: 0.85rem;
+    padding: 6px 10px; /* Сделали кнопки цветов компактнее по высоте */
+    font-size: 0.8rem;
     text-align: left;
-}
-
-.selector-btn:hover, .color-btn:hover {
-    border-color: var(--neon-color);
-    box-shadow: 0 0 8px var(--neon-glow);
-    color: #fff;
-}
-
-.selector-btn.active, .color-btn.active {
-    background: var(--neon-color);
-    color: #000;
-    border-color: var(--neon-color);
-    box-shadow: 0 0 15px var(--neon-glow);
-}
-
-.form-group-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.9rem;
-    color: #ccc;
-    cursor: pointer;
-    user-select: none;
-}
-
-.form-group-checkbox input {
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
-    accent-color: var(--neon-color);
 }
 
 /* НИЖНЯЯ ПАНЕЛЬ СТАРТА */
@@ -254,16 +202,20 @@ body {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    margin-top: 5px;
-    padding-top: 8px;
+    margin-top: 2px;
+    padding-top: 6px;
     border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.form-group-checkbox {
+    font-size: 0.8rem;
 }
 
 .match-start-btn {
     width: auto !important;
-    min-width: 180px;
-    padding: 8px 20px !important;
-    font-size: 0.95rem;
+    min-width: 140px;
+    padding: 6px 15px !important; /* Уменьшили кнопку */
+    font-size: 0.85rem;
 }
 
 /* ВЕРХНИЙ КОКПИТ ИГРЫ */
