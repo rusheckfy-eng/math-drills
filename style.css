@@ -89,18 +89,25 @@ body {
     100% { transform: rotate(0deg); }
 }
 
-/* ГЛОБАЛЬНЫЙ КОНТЕЙНЕР (Landscape 16:9) */
+/* ГЛОБАЛЬНЫЙ КОНТЕЙНЕР (ИСПРАВЛЕННЫЙ ПОД СМАРТФОНЫ) */
 .screen-container {
     width: 100vw;
     height: 100vh;
-    max-width: 100vh;
-    aspect-ratio: 16 / 9;
-    padding: 15px;
+    max-width: 100vw; /* ИСПРАВЛЕНО: Теперь на телефонах игра раскрывается на всю ширину экрана */
+    padding: 10px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
 }
+
+/* Добавим медиа-запрос для больших мониторов ПК, чтобы там игра сохраняла красивую рамку 16:9 и не растягивалась до бесконечности */
+@media (min-width: 1024px) {
+    .screen-container {
+        max-width: calc(100vh * 1.77); /* Идеальное соотношение 16:9 на компьютерах */
+    }
+}
+
 
 /* ГОРИЗОНТАЛЬНЫЙ ЭКРАН РЕГИСТРАЦИИ (БЕЗ СКРОЛЛА) — ИСПРАВЛЕННЫЙ */
 #profile-screen {
