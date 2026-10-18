@@ -27,17 +27,21 @@ export class NovelEngine {
 
         const step = scene.timeline[this.currentIndex];
         
-        // Автоматическая генерация путей по правильному системному формату
-        const bgPath = `assets/backgrounds/${this.currentSceneId}.jpg`;
+        // 1. АВТОМАТИЧЕСКАЯ ГЕНЕРАЦИЯ ПУТЕЙ К ФОНАМ В ФОРМАТЕ .WEBP
+        const bgPath = `assets/backgrounds/${this.currentSceneId}.webp`;
         
-        // Превращаем индекс 0 в человеческий номер "001" для имени аудиофайла
-        const lineNum = String(this.currentIndex + 1).padStart(3, '0');
-        const audioPath = `assets/audio/${this.currentSceneId}/line_${lineNum}.mp3`;
+        // 2. УМНАЯ ЗАГЛУШКА ДЛЯ АУДИО (Убирает спам ошибками 404 в консоли)
+        // Путь генерируется только если в шаге сценария явно прописано "hasAudio: true"
+        let audioPath = null;
+        if (step.type === "dialogue" && step.hasAudio === true) {
+            const lineNum = String(this.currentIndex + 1).padStart(3, '0');
+            audioPath = `assets/audio/${this.currentSceneId}/line_${lineNum}.mp3`;
+        }
 
         return {
             ...step,
             background: bgPath,
-            audio: step.type === "dialogue" ? audioPath : null
+            audio: audioPath
         };
     }
 
