@@ -42,38 +42,98 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden; /* Фиксируем экран смартфона от скролла */
+    overflow: hidden; /* Фиксируем экран от случайных скроллов */
 }
 
-.screen-container {
-    width: 100%;
-    max-width: 430px; /* Идеально под ширину iPhone/Android */
+/* ЗАГЛУШКА ПОВОРОТА ЭКРАНА (Блокировка Portrait) */
+#landscape-turn-overlay {
+    display: none; /* По умолчанию скрыта на ПК и в ландшафте */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
     height: 100vh;
+    background: #020208;
+    z-index: 99999; /* Поверх абсолютно всего */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+}
+
+.turn-icon {
+    font-size: 4rem;
+    animation: rotate-phone 2s infinite ease-in-out;
+    margin-bottom: 20px;
+}
+
+.turn-text {
+    color: #00ffcc;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    line-height: 1.5;
+    font-size: 1.1rem;
+}
+
+/* Срабатывает только если телефон держат вертикально */
+@media (orientation: portrait) {
+    #landscape-turn-overlay {
+        display: flex;
+    }
+}
+
+@keyframes rotate-phone {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(-90deg); }
+    100% { transform: rotate(0deg); }
+}
+
+
+/* ГЛОБАЛЬНЫЙ КОНТЕЙНЕР (Адаптирован под Landscape 16:9) */
+.screen-container {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vh; /* Предотвращает сильное растягивание на широких мониторах ПК */
+    aspect-ratio: 16 / 9; /* Жестко держим пропорции киноэкрана новеллы */
     padding: 15px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Распределяем элементы по краям */
+    justify-content: space-between;
     align-items: center;
 }
 
-/* Авторизация */
+/* Экран авторизации и новой кастомизации персонажа */
 .auth-card {
     background: var(--bg-card);
     border: 2px solid var(--neon-color);
     border-radius: var(--border-radius);
-    padding: 20px;
+    padding: 25px;
     width: 100%;
+    max-width: 460px; /* Аккуратный блок по центру */
     box-shadow: 0 0 20px var(--neon-glow);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.auth-card h2 {
+    text-align: center;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    color: var(--neon-color);
+    text-shadow: 0 0 8px var(--neon-glow);
+    margin-bottom: 5px;
 }
 
 .form-group {
-    margin-bottom: 15px;
     display: flex;
     flex-direction: column;
 }
 
-.form-group label {
-    font-size: 0.85rem;
+.form-group label, .selection-block label {
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 6px;
@@ -98,11 +158,43 @@ body {
     box-shadow: 0 0 8px var(--neon-glow);
 }
 
+/* ИНТЕРАКТИВНЫЕ СЕЛЕКТОРЫ КАСТОМИЗАЦИИ (Мальчик/Девочка, Цвета) */
+.gender-toggle-row, .suit-color-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.selector-btn, .color-btn {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(0, 255, 204, 0.25);
+    color: #ccc;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.selector-btn:hover, .color-btn:hover {
+    border-color: var(--neon-color);
+    box-shadow: 0 0 8px var(--neon-glow);
+    color: #fff;
+}
+
+.selector-btn.active, .color-btn.active {
+    background: var(--neon-color);
+    color: #000;
+    border-color: var(--neon-color);
+    box-shadow: 0 0 15px var(--neon-glow);
+}
+
 .form-group-checkbox {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 20px;
     font-size: 0.9rem;
     color: #ccc;
     cursor: pointer;
@@ -116,7 +208,7 @@ body {
     accent-color: var(--neon-color);
 }
 
-/* Кокпит */
+/* Верхний кокпит */
 .cockpit-header {
     width: 100%;
     display: flex;
@@ -143,7 +235,7 @@ body {
     background: rgba(10, 10, 30, 0.95);
     border: 1px solid var(--neon-color);
     border-radius: 6px;
-    padding: 15px;
+    padding: 12px;
     margin-top: 5px;
     z-index: 10;
 }
@@ -152,14 +244,6 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
-}
-
-.menu-row select {
-    background: #000;
-    color: #fff;
-    padding: 5px;
-    border: 1px solid var(--neon-color);
 }
 
 .neon-btn.logout {
@@ -168,13 +252,106 @@ body {
     margin-top: 5px;
 }
 
-/* Оптимизированный уменьшенный визор */
+
+/* ТЕАТР ВИЗУАЛЬНОЙ НОВЕЛЛЫ */
+.novel-theatre {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    flex-grow: 1;
+    background-size: cover; /* Заполняем контейнер 16:9 без деформаций */
+    background-position: center;
+    border-radius: var(--border-radius);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; 
+    cursor: pointer;
+    margin: 10px 0;
+}
+
+/* СЛОИ ПЕРСОНАЖЕЙ (Отрегулированы под Landscape) */
+.char-layer {
+    position: absolute;
+    bottom: 95px; /* Находятся четко над плашкой диалога */
+    width: 180px;
+    height: 260px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    transition: all 0.25s ease-in-out;
+}
+
+.left-char {
+    left: 40px; /* Раздвинуты по бокам широкого экрана */
+}
+
+.right-char {
+    right: 40px;
+}
+
+/* ДИАЛОГОВОЕ ОКНО */
+.dialogue-box {
+    position: relative;
+    z-index: 5;
+    background: rgba(1, 4, 12, 0.88);
+    border-top: 3px solid var(--neon-color);
+    padding: 15px 20px;
+    min-height: 95px;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.8);
+}
+
+.speaker-name {
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: var(--neon-color);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+    text-shadow: 0 0 5px var(--neon-glow);
+}
+
+.dialogue-text {
+    font-size: 1.05rem;
+    line-height: 1.45;
+    color: #e2e8f0;
+}
+
+.click-prompt {
+    font-size: 0.7rem;
+    color: #556270;
+    text-align: right;
+    margin-top: 4px;
+    animation: pulse 1.6s infinite;
+}
+
+
+/* МАТЕМАТИЧЕСКИЙ ОВЕРЛЕЙ */
+.math-overlay {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 5px;
+}
+
+.math-progress {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #ffaa00;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: bold;
+}
+
+/* Визор вычислений */
 .visor-container {
     width: 100%;
-    height: 110px; /* Уменьшено для компактности на смартфонах */
+    height: 95px; 
     background: var(--cockpit-window);
     border: 2px solid var(--neon-color);
-    border-radius: 50% / 15px;
+    border-radius: 50% / 12px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -185,35 +362,31 @@ body {
 }
 
 #game-question-box {
-    font-size: 2.2rem;
+    font-size: 2.3rem;
     font-weight: bold;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 5px var(--neon-glow);
 }
 
 #game-feedback {
     position: absolute;
-    bottom: 10px;
+    bottom: 8px;
     font-size: 0.8rem;
     font-weight: bold;
     letter-spacing: 1px;
     text-transform: uppercase;
 }
 
-.controls-row {
-    width: 100%;
-    margin: 10px 0;
-}
 
-/* Оптимизированная клавиатура 0-10 */
+/* СЕТКА СВЕРХСКОРОСТНОЙ КЛАВИАТУРЫ 0-10 */
 .virtual-keyboard.grid-10 {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 колонки — кнопки стали квадратными и компактными */
+    grid-template-columns: repeat(6, 1fr); /* 6 колонок в альбомном режиме делают сетку более приземистой и удобной */
     gap: 8px;
-    padding-bottom: 10px;
 }
 
-/* Последняя кнопка (10) растягивается на 2 колонки для ровной сетки */
+/* Растягиваем последнюю кнопку (10) на две ячейки для идеального баланса сетки */
 .virtual-keyboard.grid-10 .num-btn:last-child {
     grid-column: span 2;
 }
@@ -223,8 +396,8 @@ body {
     border: 1px solid var(--neon-color);
     border-radius: 8px;
     color: #fff;
-    font-size: 1.6rem;
-    padding: 12px 0; /* Оптимальная высота под тапы пальцами */
+    font-size: 1.5rem;
+    padding: 10px 0; 
     user-select: none;
     cursor: pointer;
     transition: background 0.1s, transform 0.1s;
@@ -234,6 +407,7 @@ body {
     background: var(--neon-color);
     color: #000;
     transform: scale(0.95);
+    box-shadow: 0 0 10px var(--neon-glow);
 }
 
 .neon-btn {
@@ -242,38 +416,52 @@ body {
     border: 2px solid var(--neon-color);
     border-radius: 6px;
     color: #fff;
-    padding: 10px;
+    padding: 11px;
     font-weight: bold;
     cursor: pointer;
     letter-spacing: 1px;
+    text-transform: uppercase;
     transition: background 0.2s, box-shadow 0.2s;
 }
 
 .neon-btn:hover {
     box-shadow: 0 0 10px var(--neon-glow);
+    background: rgba(0, 255, 204, 0.05);
 }
 
+
+/* ТЕХНИЧЕСКИЕ АНИМАЦИИ */
 .shake {
     animation: space-shake 0.3s ease;
 }
 
 @keyframes space-shake {
     0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
 }
 
 .hidden {
     display: none !important;
 }
 
-/* Текстовые стили для логов или инженерии */
 #admin-screen {
     background: #000;
     color: #39ff14;
-    font-family: 'Courier New', Courier, monospace;
-    border: 1px solid #39ff14;
-    border-radius: 4px;
-    padding: 20px;
-    width: 100%;
+font-family: 'Courier New', Courier, monospace;
+border: 1px solid #39ff14;
+border-radius: 4px;
+padding: 20px;
+width: 100%;
+}
+
+/* Эффект голограммы для Искры */
+.char-layer[style*="iskra"] {
+    opacity: 0.85; /* Слегка прозрачная */
+    filter: drop-shadow(0 0 8px var(--neon-color)) saturate(1.2); /* Светится в цвет текущего неона сцены */
 }
