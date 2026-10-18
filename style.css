@@ -42,19 +42,19 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden; /* Фиксируем экран от случайных скроллов */
+    overflow: hidden; /* Блокируем системный скролл */
 }
 
-/* ЗАГЛУШКА ПОВОРОТА ЭКРАНА (Блокировка Portrait) */
+/* ЗАГЛУШКА ПОВОРОТА ЭКРАНА (Portrait Блокировка) */
 #landscape-turn-overlay {
-    display: none; /* По умолчанию скрыта на ПК и в ландшафте */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
     background: #020208;
-    z-index: 99999; /* Поверх абсолютно всего */
+    z-index: 99999;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -77,7 +77,6 @@ body {
     font-size: 1.1rem;
 }
 
-/* Срабатывает только если телефон держат вертикально */
 @media (orientation: portrait) {
     #landscape-turn-overlay {
         display: flex;
@@ -90,13 +89,12 @@ body {
     100% { transform: rotate(0deg); }
 }
 
-
-/* ГЛОБАЛЬНЫЙ КОНТЕЙНЕР (Адаптирован под Landscape 16:9) */
+/* ГЛОБАЛЬНЫЙ КОНТЕЙНЕР (Landscape 16:9) */
 .screen-container {
     width: 100vw;
     height: 100vh;
-    max-width: 100vh; /* Предотвращает сильное растягивание на широких мониторах ПК */
-    aspect-ratio: 16 / 9; /* Жестко держим пропорции киноэкрана новеллы */
+    max-width: 100vh;
+    aspect-ratio: 16 / 9;
     padding: 15px;
     display: flex;
     flex-direction: column;
@@ -104,27 +102,54 @@ body {
     align-items: center;
 }
 
-/* Экран авторизации и новой кастомизации персонажа */
+/* ЭКРАН РЕГИСТРАЦИИ (БЕЗ СКРОЛЛА) */
+#profile-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Базовая карточка */
 .auth-card {
     background: var(--bg-card);
     border: 2px solid var(--neon-color);
     border-radius: var(--border-radius);
-    padding: 25px;
-    width: 100%;
-    max-width: 460px; /* Аккуратный блок по центру */
     box-shadow: 0 0 20px var(--neon-glow);
     display: flex;
     flex-direction: column;
-    gap: 15px;
 }
 
-.auth-card h2 {
+/* Специфичные настройки для широкого горизонтального меню пилота */
+.landscape-profile-card {
+    max-width: 620px !important; 
+    width: 100%;
+    padding: 15px 20px !important;
+    gap: 10px !important;
+}
+
+.landscape-profile-card h2 {
     text-align: center;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     letter-spacing: 2px;
     color: var(--neon-color);
     text-shadow: 0 0 8px var(--neon-glow);
     margin-bottom: 5px;
+}
+
+.profile-grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Две равные колонки */
+    gap: 20px;
+    width: 100%;
+}
+
+.profile-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .form-group {
@@ -140,42 +165,57 @@ body {
     color: #aaa;
 }
 
-.form-group input,
-.form-group select {
+.form-group input {
     background: rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 6px;
-    padding: 10px;
+    padding: 8px;
     color: #fff;
-    font-size: 1rem;
+    font-size: 0.95rem;
     outline: none;
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.form-group input:focus {
     border-color: var(--neon-color);
     box-shadow: 0 0 8px var(--neon-glow);
 }
 
-/* ИНТЕРАКТИВНЫЕ СЕЛЕКТОРЫ КАСТОМИЗАЦИИ (Мальчик/Девочка, Цвета) */
-.gender-toggle-row, .suit-color-row {
+/* СЕЛЕКТОРЫ СКАФАНДРОВ И ПОЛА */
+.gender-toggle-row {
     display: flex;
     gap: 10px;
     width: 100%;
 }
 
+.suit-color-row-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
 .selector-btn, .color-btn {
-    flex: 1;
     background: rgba(0, 0, 0, 0.6);
     border: 1px solid rgba(0, 255, 204, 0.25);
     color: #ccc;
-    padding: 12px;
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 0.9rem;
     transition: all 0.2s ease;
+}
+
+.gender-toggle-row .selector-btn {
+    flex: 1;
+    padding: 8px;
+    font-size: 0.85rem;
+}
+
+.suit-color-row-vertical .color-btn {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    text-align: left;
 }
 
 .selector-btn:hover, .color-btn:hover {
@@ -208,7 +248,25 @@ body {
     accent-color: var(--neon-color);
 }
 
-/* Верхний кокпит */
+/* НИЖНЯЯ ПАНЕЛЬ СТАРТА */
+.profile-footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 5px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.match-start-btn {
+    width: auto !important;
+    min-width: 180px;
+    padding: 8px 20px !important;
+    font-size: 0.95rem;
+}
+
+/* ВЕРХНИЙ КОКПИТ ИГРЫ */
 .cockpit-header {
     width: 100%;
     display: flex;
@@ -229,7 +287,6 @@ body {
     cursor: pointer;
 }
 
-/* Выпадающее верхнее меню */
 .quick-menu {
     width: 100%;
     background: rgba(10, 10, 30, 0.95);
@@ -240,27 +297,21 @@ body {
     z-index: 10;
 }
 
-.menu-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
 .neon-btn.logout {
     background: rgba(255, 0, 85, 0.2);
     border-color: #ff0055;
     margin-top: 5px;
 }
 
-
-/* ТЕАТР ВИЗУАЛЬНОЙ НОВЕЛЛЫ */
+/* ЭКРАН ТЕАТРА НОВЕЛЛЫ */
 .novel-theatre {
     position: relative;
     width: 100%;
     height: 100%;
     flex-grow: 1;
-    background-size: cover; /* Заполняем контейнер 16:9 без деформаций */
-    background-position: center;
+    background-size: 100% 100%;
+    background-position: center bottom;
+    background-repeat: no-repeat;
     border-radius: var(--border-radius);
     border: 2px solid rgba(255, 255, 255, 0.08);
     overflow: hidden;
@@ -271,10 +322,15 @@ body {
     margin: 10px 0;
 }
 
-/* СЛОИ ПЕРСОНАЖЕЙ (Отрегулированы под Landscape) */
+#game-screen {
+    overflow: hidden;
+    max-height: 100vh;
+}
+
+/* ПЕРСОНАЖИ */
 .char-layer {
     position: absolute;
-    bottom: 95px; /* Находятся четко над плашкой диалога */
+    bottom: 95px;
     width: 180px;
     height: 260px;
     background-size: contain;
@@ -283,12 +339,13 @@ body {
     transition: all 0.25s ease-in-out;
 }
 
-.left-char {
-    left: 40px; /* Раздвинуты по бокам широкого экрана */
-}
+.left-char { left: 40px; }
+.right-char { right: 40px; }
 
-.right-char {
-    right: 40px;
+/* Эффект голограммы для Искры */
+.char-layer[style*="iskra"] {
+    opacity: 0.85;
+    filter: drop-shadow(0 0 8px var(--neon-color)) saturate(1.2);
 }
 
 /* ДИАЛОГОВОЕ ОКНО */
@@ -326,8 +383,7 @@ body {
     animation: pulse 1.6s infinite;
 }
 
-
-/* МАТЕМАТИЧЕСКИЙ ОВЕРЛЕЙ */
+/* МАТЕМАТИЧЕСКИЙ ИНТЕРФЕЙС */
 .math-overlay {
     width: 100%;
     display: flex;
@@ -345,7 +401,6 @@ body {
     font-weight: bold;
 }
 
-/* Визор вычислений */
 .visor-container {
     width: 100%;
     height: 95px; 
@@ -377,16 +432,14 @@ body {
     text-transform: uppercase;
 }
 
-
-/* СЕТКА СВЕРХСКОРОСТНОЙ КЛАВИАТУРЫ 0-10 */
+/* СЕТКА СВЕРХСКОРОСТНОЙ КЛАВИАТУРЫ */
 .virtual-keyboard.grid-10 {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(6, 1fr); /* 6 колонок в альбомном режиме делают сетку более приземистой и удобной */
+    grid-template-columns: repeat(6, 1fr);
     gap: 8px;
 }
 
-/* Растягиваем последнюю кнопку (10) на две ячейки для идеального баланса сетки */
 .virtual-keyboard.grid-10 .num-btn:last-child {
     grid-column: span 2;
 }
@@ -411,7 +464,6 @@ body {
 }
 
 .neon-btn {
-    width: 100%;
     background: transparent;
     border: 2px solid var(--neon-color);
     border-radius: 6px;
@@ -425,43 +477,29 @@ body {
 }
 
 .neon-btn:hover {
-    box-shadow: 0 0 10px var(--neon-glow);
-    background: rgba(0, 255, 204, 0.05);
+box-shadow: 0 0 10px var(--neon-glow);
+background: rgba(0, 255, 204, 0.05);
 }
-
-
 /* ТЕХНИЧЕСКИЕ АНИМАЦИИ */
 .shake {
-    animation: space-shake 0.3s ease;
+animation: space-shake 0.3s ease;
 }
-
 @keyframes space-shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-6px); }
-    75% { transform: translateX(6px); }
+0%, 100% { transform: translateX(0); }
+25% { transform: translateX(-6px); }
+75% { transform: translateX(6px); }
 }
-
 @keyframes pulse {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 1; }
+0%, 100% { opacity: 0.3; }
+50% { opacity: 1; }
 }
-
-.hidden {
-    display: none !important;
-}
-
+.hidden { display: none !important; }
 #admin-screen {
-    background: #000;
-    color: #39ff14;
+background: #000;
+color: #39ff14;
 font-family: 'Courier New', Courier, monospace;
 border: 1px solid #39ff14;
 border-radius: 4px;
 padding: 20px;
 width: 100%;
-}
-
-/* Эффект голограммы для Искры */
-.char-layer[style*="iskra"] {
-    opacity: 0.85; /* Слегка прозрачная */
-    filter: drop-shadow(0 0 8px var(--neon-color)) saturate(1.2); /* Светится в цвет текущего неона сцены */
 }
