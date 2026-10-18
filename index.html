@@ -3,27 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MathDrill: Космический Перехватчик</title>
-    <link rel="stylesheet" href="./style.css">
+    <title>Математическая Орбита: Операция Сверхзвуковой Резонанс</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-azure">
 
-    <!-- ЭКРАН 1: АВТОРИЗАЦИЯ И ИНИЦИАЛИЗАЦИЯ ПИЛОТА -->
-    <div id="profile-screen" class="screen-container">
-        <!-- Сюда динамически рендерится форма из ViewProfile.js -->
+    <!-- ЗАГЛУШКА ПОВОРОТА ЭКРАНА (Показывается только в Portrait режиме) -->
+    <div id="landscape-turn-overlay">
+        <div class="turn-icon">🔄</div>
+        <div class="turn-text">
+            Командор, переверните устройство<br>
+            для активации «Стрелы-Икс»
+        </div>
     </div>
 
-    <!-- ЭКРАН 2: КОСМИЧЕСКИЙ КОКПИТ / ИГРОВОЙ ПРОЦЕСС -->
-    <div id="game-screen" class="screen-container" style="display: none;">
-        <!-- Сюда динамически рендерится интерфейс из ViewGame.js -->
+    <!-- ГЛОБАЛЬНЫЙ БЕЗОПАСНЫЙ КОНТЕЙНЕР (Landscape 16:9) -->
+    <div class="screen-container">
+        
+        <!-- ЭКРАН 1: РЕГИСТРАЦИЯ И КАСТОМИЗАЦИЯ ПИЛОТА -->
+        <div id="profile-screen" class="auth-card selection-layout" style="display: none;">
+            <!-- Контент генерируется динамически через ViewProfile.js -->
+        </div>
+
+        <!-- ЭКРАН 2: ИГРОВОЙ КОКПИТ (НОВЕЛЛА + МАТЕМАТИКА) -->
+        <div id="game-screen" style="display: none; width: 100%; height: 100%; flex-direction: column; justify-content: space-between;">
+            <!-- Контент генерируется динамически через ViewNovel.js -->
+        </div>
+
+        <!-- ОТЛАДОЧНЫЙ ИНЖЕНЕРНЫЙ ЭКРАН (ЛОГИ АДМИНА) -->
+        <div id="admin-screen" style="display: none;">
+            <h3>МАТРИЦА СБОЕВ БОРТОВОГО КОМПЬЮТЕРА</h3>
+            <div id="admin-logs"></div>
+        </div>
+
     </div>
 
-    <!-- ЭКРАН 3: ИНЖЕНЕРНЫЙ ОТЛАДОЧНЫЙ ПУЛЬТ (АДМИНКА) -->
-    <div id="admin-screen" class="screen-container" style="display: none;">
-        <!-- Сюда динамически рендерится панель администратора -->
-    </div>
-
-    <!-- Подключение главного архитектурного контроллера -->
-    <script type="module" src="./main.js"></script>
+    <!-- ПОДКЛЮЧЕНИЕ ТОЧКИ ВХОДА ИГРЫ КАК ES6-МОДУЛЯ -->
+    <script type="module" src="src/main.js"></script>
 </body>
 </html>
